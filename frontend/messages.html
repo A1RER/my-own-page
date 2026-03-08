@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>A1RER · Intel Submissions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300&family=Noto+Serif+SC:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --ink: #0e0d0b;
+        --paper: #f5f0e8;
+        --paper2: #ede8de;
+        --fold: #d9d3c7;
+        --accent: #1a3a5c;
+        --red: #8b2a2a;
+        --muted: #8a8278;
+        --faint: #c8c2b8;
+        --amber: #b07d2a;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--ink);
+        color: var(--ink);
+        font-family: "IBM Plex Mono", monospace;
+        overflow-x: hidden;
+        cursor: crosshair;
+      }
+
+      /* noise */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 1000;
+      }
+
+      /* scrollbar */
+      ::-webkit-scrollbar {
+        width: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--ink);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--accent);
+      }
+
+      /* ══ DOSSIER WRAPPER ══ */
+      .dossier {
+        max-width: 960px;
+        margin: 0 auto;
+        background: var(--paper);
+        min-height: 100vh;
+        position: relative;
+        box-shadow:
+          0 0 80px rgba(0, 0, 0, 0.8),
+          0 0 200px rgba(0, 0, 0, 0.4);
+      }
+      /* left binding */
+      .dossier::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 32px;
+        background: var(--accent);
+        z-index: 10;
+      }
+      /* ruled lines */
+      .dossier::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: repeating-linear-gradient(
+          to bottom,
+          transparent 0px,
+          transparent 27px,
+          rgba(0, 0, 0, 0.06) 27px,
+          rgba(0, 0, 0, 0.06) 28px
+        );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .content {
+        position: relative;
+        z-index: 1;
+        padding: 0 3rem 0 4.5rem;
+      }
+
+      /* ══ COVER ══ */
+      .cover {
+        padding: 4rem 0 3rem;
+        border-bottom: 2px solid var(--ink);
+        position: relative;
+      }
+      .cover-stamp {
+        position: absolute;
+        top: 2rem;
+        right: 0;
+        width: 120px;
+        height: 120px;
+        border: 3px solid var(--red);
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--red);
+        transform: rotate(-12deg);
+        opacity: 0.7;
+      }
+      .stamp-line1 {
+        font-family: "Special Elite", cursive;
+        font-size: 0.55rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+      .stamp-line2 {
+        font-family: "Special Elite", cursive;
+        font-size: 1.1rem;
+        letter-spacing: 0.05em;
+        font-weight: bold;
+        line-height: 1;
+      }
+      .stamp-line3 {
+        font-family: "Special Elite", cursive;
+        font-size: 0.48rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        opacity: 0.7;
+      }
+
+      .cover-label {
+        font-size: 0.6rem;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.5rem;
+        opacity: 0;
+        animation: appear 0.4s 0.1s forwards;
+      }
+      .cover-id {
+        font-family: "Special Elite", cursive;
+        font-size: clamp(3rem, 8vw, 5.5rem);
+        line-height: 0.9;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+        opacity: 0;
+        animation: appear 0.5s 0.2s forwards;
+      }
+      .cover-sub {
+        font-family: "Noto Serif SC", serif;
+        font-size: 1rem;
+        font-weight: 300;
+        color: var(--muted);
+        margin-top: 0.5rem;
+        margin-bottom: 2rem;
+        font-style: italic;
+        opacity: 0;
+        animation: appear 0.5s 0.35s forwards;
+      }
+
+      .cover-meta {
+        display: flex;
+        gap: 3rem;
+        flex-wrap: wrap;
+        opacity: 0;
+        animation: appear 0.5s 0.5s forwards;
+      }
+      .meta-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+      }
+      .meta-key {
+        font-size: 0.55rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border-bottom: 1px solid var(--faint);
+        padding-bottom: 0.15rem;
+      }
+      .meta-val {
+        font-size: 0.8rem;
+        color: var(--ink);
+      }
+
+      @keyframes appear {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* back link */
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.55rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        padding-bottom: 1px;
+        transition: all 0.15s;
+        margin-bottom: 1.5rem;
+        margin-top: 1rem;
+        display: block;
+      }
+      .back-link:hover {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+
+      /* ══ SECTION ══ */
+      .section {
+        padding: 2.5rem 0;
+        border-bottom: 1px solid var(--fold);
+        opacity: 0;
+        animation: appear 0.5s ease forwards;
+      }
+      .section:last-child {
+        border-bottom: none;
+      }
+      .section:nth-child(1) {
+        animation-delay: 0.6s;
+      }
+      .section:nth-child(2) {
+        animation-delay: 0.75s;
+      }
+      .section:nth-child(3) {
+        animation-delay: 0.9s;
+      }
+
+      .sec-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.8rem;
+      }
+      .sec-num {
+        font-size: 0.55rem;
+        letter-spacing: 0.2em;
+        color: var(--muted);
+        background: var(--fold);
+        padding: 0.25rem 0.6rem;
+        flex-shrink: 0;
+      }
+      .sec-title {
+        font-family: "Special Elite", cursive;
+        font-size: 1.1rem;
+        letter-spacing: 0.05em;
+        color: var(--ink);
+        flex: 1;
+      }
+      .sec-line {
+        flex: 1;
+        height: 1px;
+        background: var(--fold);
+      }
+
+      /* ══ SUBMIT FORM ══ */
+      .form-grid {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 1px;
+        background: var(--fold);
+        border: 1px solid var(--fold);
+        margin-bottom: 0.8rem;
+      }
+      .form-field {
+        background: var(--paper);
+        padding: 1rem 1.2rem;
+      }
+      .form-field.full {
+        grid-column: 1 / -1;
+      }
+
+      .form-label {
+        font-size: 0.5rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: block;
+        margin-bottom: 0.5rem;
+      }
+      .form-input,
+      .form-textarea {
+        width: 100%;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid var(--faint);
+        padding: 0.3rem 0;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.78rem;
+        color: var(--ink);
+        outline: none;
+        transition: border-color 0.15s;
+        cursor: crosshair;
+        resize: none;
+      }
+      .form-input:focus,
+      .form-textarea:focus {
+        border-bottom-color: var(--accent);
+      }
+      .form-input::placeholder,
+      .form-textarea::placeholder {
+        color: var(--faint);
+      }
+      .form-textarea {
+        min-height: 80px;
+        line-height: 1.7;
+        padding-top: 0.3rem;
+      }
+
+      .form-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 0.5rem;
+      }
+      .form-hint {
+        font-size: 0.5rem;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        font-style: italic;
+      }
+      #char-count {
+        color: var(--accent);
+      }
+      #char-count.warn {
+        color: var(--amber);
+      }
+      #char-count.over {
+        color: var(--red);
+      }
+
+      .submit-btn {
+        background: var(--ink);
+        border: 1px solid var(--ink);
+        color: var(--paper);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.58rem;
+        letter-spacing: 0.2em;
+        padding: 0.6rem 1.5rem;
+        cursor: crosshair;
+        text-transform: uppercase;
+        transition: all 0.15s;
+        position: relative;
+        overflow: hidden;
+      }
+      .submit-btn:hover {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .submit-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .submit-btn.loading::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 2px;
+        background: var(--accent);
+        animation: progress 1s ease-in-out infinite;
+      }
+      @keyframes progress {
+        0% {
+          left: 0;
+          width: 0;
+        }
+        50% {
+          left: 0;
+          width: 100%;
+        }
+        100% {
+          left: 100%;
+          width: 0;
+        }
+      }
+
+      /* toast */
+      #toast {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: var(--ink);
+        color: var(--paper);
+        font-size: 0.6rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        padding: 0.7rem 1.5rem;
+        border-left: 3px solid var(--accent);
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s;
+        z-index: 500;
+        white-space: nowrap;
+      }
+      #toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      #toast.error {
+        border-left-color: var(--red);
+      }
+
+      /* ══ MESSAGES LIST ══ */
+      .msg-count {
+        font-size: 0.52rem;
+        letter-spacing: 0.15em;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 1.2rem;
+      }
+      #msg-count-num {
+        color: var(--accent);
+      }
+
+      .msg-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        background: var(--fold);
+        border: 1px solid var(--fold);
+      }
+
+      .msg-item {
+        background: var(--paper);
+        padding: 1.2rem 1.5rem;
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        gap: 1.5rem;
+        align-items: start;
+        position: relative;
+        transition: background 0.15s;
+        opacity: 0;
+        animation: appear 0.4s ease forwards;
+      }
+      .msg-item:hover {
+        background: var(--paper2);
+      }
+      .msg-item::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: transparent;
+        transition: background 0.15s;
+      }
+      .msg-item:hover::before {
+        background: var(--accent);
+      }
+
+      .msg-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+      .msg-nickname {
+        font-family: "Special Elite", cursive;
+        font-size: 0.9rem;
+        color: var(--ink);
+        letter-spacing: 0.03em;
+        word-break: break-all;
+      }
+      .msg-time {
+        font-size: 0.5rem;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        font-style: italic;
+      }
+      .msg-id {
+        font-size: 0.45rem;
+        letter-spacing: 0.1em;
+        color: var(--faint);
+      }
+
+      .msg-content {
+        font-family: "Noto Serif SC", serif;
+        font-size: 0.82rem;
+        font-weight: 300;
+        color: var(--ink);
+        line-height: 1.8;
+        padding-top: 0.1rem;
+      }
+
+      /* empty state */
+      .msg-empty {
+        padding: 3rem 1.5rem;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.65rem;
+        font-style: italic;
+        letter-spacing: 0.1em;
+        background: var(--paper);
+      }
+
+      /* loading skeleton */
+      .msg-skeleton {
+        background: var(--paper);
+        padding: 1.2rem 1.5rem;
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        gap: 1.5rem;
+      }
+      .skel-line {
+        height: 10px;
+        border-radius: 2px;
+        background: var(--fold);
+        animation: shimmer 1.4s ease-in-out infinite;
+      }
+      .skel-line.short {
+        width: 60%;
+      }
+      .skel-line.xshort {
+        width: 40%;
+        margin-top: 0.5rem;
+      }
+      @keyframes shimmer {
+        0%,
+        100% {
+          opacity: 0.4;
+        }
+        50% {
+          opacity: 0.9;
+        }
+      }
+
+      /* load more */
+      #load-more-btn {
+        display: none;
+        width: 100%;
+        background: none;
+        border: none;
+        border-top: 1px dashed var(--faint);
+        color: var(--muted);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.55rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        padding: 1rem;
+        cursor: crosshair;
+        transition: color 0.15s;
+      }
+      #load-more-btn:hover {
+        color: var(--accent);
+      }
+
+      /* ══ FOOTER ══ */
+      .footer-rule {
+        border: none;
+        border-top: 2px solid var(--ink);
+        margin: 0;
+      }
+      .footer-bar {
+        padding: 1.5rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .footer-sig {
+        font-family: "Special Elite", cursive;
+        font-size: 1.2rem;
+        color: var(--ink);
+        opacity: 0.4;
+      }
+      .footer-copy {
+        font-size: 0.55rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dossier">
+      <div class="content">
+        <!-- ── COVER ── -->
+        <header class="cover">
+          <div class="cover-stamp">
+            <span class="stamp-line1">file</span>
+            <span class="stamp-line2">OPEN</span>
+            <span class="stamp-line3">submissions</span>
+          </div>
+          <div class="cover-label">Intel Submissions · Field Reports</div>
+          <div class="cover-id">Messages</div>
+          <div class="cover-sub">情报投递 · 留言存档</div>
+          <div class="cover-meta">
+            <div class="meta-field">
+              <span class="meta-key">Subject</span>
+              <span class="meta-val">A1RER</span>
+            </div>
+            <div class="meta-field">
+              <span class="meta-key">Classification</span>
+              <span class="meta-val">Public · Open</span>
+            </div>
+            <div class="meta-field">
+              <span class="meta-key">Records</span>
+              <span class="meta-val" id="header-count">Loading...</span>
+            </div>
+          </div>
+        </header>
+
+        <a class="back-link" href="A1RER.html">← 返回档案主页</a>
+
+        <!-- ── §01 SUBMIT ── -->
+        <section class="section">
+          <div class="sec-header">
+            <span class="sec-num">§ 01</span>
+            <span class="sec-title">Submit Intelligence · 投递情报</span>
+            <div class="sec-line"></div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label class="form-label" for="input-nickname"
+                >Codename · 代号</label
+              >
+              <input
+                type="text"
+                id="input-nickname"
+                class="form-input"
+                placeholder="匿名探员"
+                maxlength="50"
+                autocomplete="off"
+              />
+            </div>
+            <div class="form-field full">
+              <label class="form-label" for="input-content"
+                >Intelligence Report · 情报内容</label
+              >
+              <textarea
+                id="input-content"
+                class="form-textarea"
+                placeholder="在这里写下你想说的话..."
+                maxlength="500"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="form-footer">
+            <span class="form-hint"
+              >字数限制 <span id="char-count">0</span> / 500 · 公开可见</span
+            >
+            <button class="submit-btn" id="submit-btn">投递 ↵</button>
+          </div>
+        </section>
+
+        <!-- ── §02 RECORDS ── -->
+        <section class="section">
+          <div class="sec-header">
+            <span class="sec-num">§ 02</span>
+            <span class="sec-title">Intelligence Archive · 情报存档</span>
+            <div class="sec-line"></div>
+          </div>
+
+          <div class="msg-count">
+            共收录 <span id="msg-count-num">—</span> 条情报
+          </div>
+
+          <div id="msg-list" class="msg-list">
+            <!-- 骨架屏 -->
+            <div class="msg-skeleton">
+              <div>
+                <div class="skel-line short"></div>
+                <div class="skel-line xshort"></div>
+              </div>
+              <div>
+                <div class="skel-line"></div>
+                <div class="skel-line short" style="margin-top: 0.5rem"></div>
+              </div>
+            </div>
+            <div class="msg-skeleton">
+              <div>
+                <div class="skel-line short"></div>
+                <div class="skel-line xshort"></div>
+              </div>
+              <div>
+                <div class="skel-line"></div>
+                <div
+                  class="skel-line short"
+                  style="margin-top: 0.5rem; width: 30%"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <button id="load-more-btn">载入更多记录 ↓</button>
+        </section>
+      </div>
+      <!-- /content -->
+
+      <hr class="footer-rule" />
+      <div class="content">
+        <div class="footer-bar">
+          <span class="footer-sig">A1RER</span>
+          <span class="footer-copy"
+            >Intel Submissions · All records subject to review</span
+          >
+        </div>
+      </div>
+    </div>
+    <!-- /dossier -->
+
+    <div id="toast"></div>
+
+    <script>
+      const API = "http://localhost:3001";
+      let allMessages = [];
+      let displayed = 0;
+      const PAGE_SIZE = 10;
+
+      // ── Toast ─────────────────────────────────────────
+      function showToast(msg, isError = false) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.className = "show" + (isError ? " error" : "");
+        setTimeout(() => (t.className = ""), 3000);
+      }
+
+      // ── Format date ───────────────────────────────────
+      function fmtDate(iso) {
+        const d = new Date(iso);
+        return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+      }
+
+      // ── Render one message ────────────────────────────
+      function renderMsg(msg, delay = 0) {
+        const div = document.createElement("div");
+        div.className = "msg-item";
+        div.style.animationDelay = delay + "s";
+        div.innerHTML = `
+          <div class="msg-meta">
+            <div class="msg-nickname">${escHtml(msg.nickname)}</div>
+            <div class="msg-time">${fmtDate(msg.created_at)}</div>
+            <div class="msg-id">ID · ${String(msg.id).padStart(4, "0")}</div>
+          </div>
+          <div class="msg-content">${escHtml(msg.content)}</div>`;
+        return div;
+      }
+
+      function escHtml(str) {
+        return str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      // ── Load messages ─────────────────────────────────
+      async function loadMessages() {
+        const list = document.getElementById("msg-list");
+        try {
+          const res = await fetch(`${API}/api/messages`);
+          allMessages = await res.json();
+
+          // Update counts
+          document.getElementById("msg-count-num").textContent =
+            allMessages.length;
+          document.getElementById("header-count").textContent =
+            allMessages.length + " records";
+
+          list.innerHTML = "";
+          displayed = 0;
+
+          if (!allMessages.length) {
+            list.innerHTML =
+              '<div class="msg-empty">暂无情报记录 · 成为第一个投递者</div>';
+            return;
+          }
+
+          renderPage();
+        } catch {
+          list.innerHTML =
+            '<div class="msg-empty">无法连接到服务器，请确认后端正在运行</div>';
+          document.getElementById("header-count").textContent = "offline";
+        }
+      }
+
+      function renderPage() {
+        const list = document.getElementById("msg-list");
+        const chunk = allMessages.slice(displayed, displayed + PAGE_SIZE);
+        chunk.forEach((msg, i) => {
+          list.appendChild(renderMsg(msg, i * 0.05));
+        });
+        displayed += chunk.length;
+
+        const btn = document.getElementById("load-more-btn");
+        btn.style.display = displayed < allMessages.length ? "block" : "none";
+      }
+
+      document
+        .getElementById("load-more-btn")
+        .addEventListener("click", renderPage);
+
+      // ── Char counter ──────────────────────────────────
+      const contentEl = document.getElementById("input-content");
+      const charCount = document.getElementById("char-count");
+      contentEl.addEventListener("input", () => {
+        const n = contentEl.value.length;
+        charCount.textContent = n;
+        charCount.className = n > 450 ? "over" : n > 350 ? "warn" : "";
+      });
+
+      // ── Submit ────────────────────────────────────────
+      const submitBtn = document.getElementById("submit-btn");
+      submitBtn.addEventListener("click", async () => {
+        const nickname =
+          document.getElementById("input-nickname").value.trim() || "匿名探员";
+        const content = contentEl.value.trim();
+
+        if (!content) {
+          showToast("情报内容不能为空", true);
+          return;
+        }
+        if (content.length > 500) {
+          showToast("内容超过 500 字限制", true);
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.classList.add("loading");
+        submitBtn.textContent = "投递中...";
+
+        try {
+          const res = await fetch(`${API}/api/messages`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nickname, content }),
+          });
+          const data = await res.json();
+
+          if (!res.ok) {
+            showToast(data.error || "投递失败", true);
+            return;
+          }
+
+          // Prepend new message to top
+          allMessages.unshift({
+            id: data.id,
+            nickname,
+            content,
+            created_at: new Date().toISOString(),
+          });
+          displayed++;
+          document.getElementById("msg-count-num").textContent =
+            allMessages.length;
+          document.getElementById("header-count").textContent =
+            allMessages.length + " records";
+
+          const list = document.getElementById("msg-list");
+          const emptyEl = list.querySelector(".msg-empty");
+          if (emptyEl) emptyEl.remove();
+
+          const newMsg = renderMsg(allMessages[0], 0);
+          list.insertBefore(newMsg, list.firstChild);
+
+          // Reset form
+          contentEl.value = "";
+          document.getElementById("input-nickname").value = "";
+          charCount.textContent = "0";
+          charCount.className = "";
+
+          showToast("情报已收录 · ID " + String(data.id).padStart(4, "0"));
+        } catch {
+          showToast("无法连接到服务器", true);
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.classList.remove("loading");
+          submitBtn.textContent = "投递 ↵";
+        }
+      });
+
+      // Enter to submit (Ctrl+Enter in textarea)
+      contentEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && e.ctrlKey) submitBtn.click();
+      });
+
+      // ── Boot ──────────────────────────────────────────
+      loadMessages();
+    </script>
+  </body>
+</html>
