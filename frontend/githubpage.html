@@ -1,0 +1,921 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>A1RER · GitHub Intel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300&family=Noto+Serif+SC:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --ink: #0e0d0b;
+        --paper: #f5f0e8;
+        --paper2: #ede8de;
+        --fold: #d9d3c7;
+        --accent: #1a3a5c;
+        --red: #8b2a2a;
+        --muted: #8a8278;
+        --faint: #c8c2b8;
+        --amber: #b07d2a;
+        --dim: #1d1c1a;
+        --surface: #131211;
+      }
+
+      html,
+      body {
+        height: 100%;
+        background: var(--ink);
+        color: var(--paper);
+        font-family: "IBM Plex Mono", monospace;
+        cursor: crosshair;
+        overflow: hidden;
+      }
+
+      /* noise */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 1000;
+      }
+
+      /* ══ LAYOUT ══ */
+      #app {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        max-width: 1000px;
+        margin: 0 auto;
+        border-left: 1px solid var(--dim);
+        border-right: 1px solid var(--dim);
+        position: relative;
+      }
+
+      /* ══ HEADER ══ */
+      #header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.1rem 2rem;
+        border-bottom: 1px solid var(--accent);
+        flex-shrink: 0;
+        background: rgba(26, 58, 92, 0.08);
+        position: relative;
+      }
+      /* left accent strip — mirrors dossier binding */
+      #header::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--accent);
+      }
+
+      .header-left {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+      }
+      .header-badge {
+        font-size: 0.45rem;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      .header-title {
+        font-family: "Special Elite", cursive;
+        font-size: 1.3rem;
+        color: var(--paper);
+        letter-spacing: 0.05em;
+        line-height: 1;
+      }
+      .header-sub {
+        font-size: 0.5rem;
+        color: var(--muted);
+        letter-spacing: 0.15em;
+        margin-top: 0.15rem;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+      }
+      #rate-limit {
+        font-size: 0.48rem;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+      }
+      #back-btn {
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        border: 1px solid var(--muted);
+        color: var(--muted);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.55rem;
+        letter-spacing: 0.15em;
+        padding: 0.35rem 0.8rem;
+        transition: all 0.15s;
+        text-transform: uppercase;
+      }
+      #back-btn:hover {
+        border-color: var(--paper);
+        color: var(--paper);
+      }
+
+      /* ══ TAB BAR ══ */
+      #tabs {
+        display: flex;
+        border-bottom: 1px solid var(--dim);
+        flex-shrink: 0;
+        padding-left: 2rem;
+      }
+      .tab {
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        color: var(--muted);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.58rem;
+        letter-spacing: 0.18em;
+        padding: 0.85rem 1.2rem;
+        cursor: crosshair;
+        transition: all 0.15s;
+        text-transform: uppercase;
+        position: relative;
+        top: 1px;
+      }
+      .tab:hover {
+        color: var(--paper);
+      }
+      .tab.active {
+        color: var(--paper);
+        border-bottom-color: var(--accent);
+      }
+      .tab-count {
+        font-size: 0.42rem;
+        color: var(--accent);
+        margin-left: 0.4rem;
+        vertical-align: middle;
+      }
+
+      /* ══ PANE CONTAINER ══ */
+      #panes {
+        flex: 1;
+        overflow: hidden;
+        position: relative;
+      }
+      .pane {
+        display: none;
+        height: 100%;
+        overflow-y: auto;
+        padding: 1.8rem 2rem;
+        scrollbar-width: thin;
+        scrollbar-color: var(--accent) var(--ink);
+      }
+      .pane.active {
+        display: block;
+      }
+      .pane::-webkit-scrollbar {
+        width: 3px;
+      }
+      .pane::-webkit-scrollbar-thumb {
+        background: var(--accent);
+      }
+
+      /* ══ LOADING STATE ══ */
+      .loading-row {
+        color: var(--muted);
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        font-style: italic;
+        padding: 3rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+      .cursor {
+        animation: blink 1s step-end infinite;
+      }
+
+      /* ══ ERROR STATE ══ */
+      .error-block {
+        font-size: 0.62rem;
+        color: var(--red);
+        font-style: italic;
+        padding: 1.5rem 0;
+        line-height: 2;
+        border-left: 2px solid var(--red);
+        padding-left: 1rem;
+      }
+      .error-block a {
+        color: var(--accent);
+      }
+
+      /* ══ PANE: COMMITS ══ */
+      .commit-row {
+        display: grid;
+        grid-template-columns: 95px 1fr 75px;
+        gap: 1.2rem;
+        padding: 0.9rem 0;
+        border-bottom: 1px dashed var(--dim);
+        align-items: start;
+      }
+      .commit-row:last-child {
+        border-bottom: none;
+      }
+      .commit-date {
+        font-size: 0.55rem;
+        letter-spacing: 0.08em;
+        color: var(--accent);
+        padding-top: 0.1rem;
+      }
+      .commit-msg {
+        font-size: 0.72rem;
+        color: var(--paper);
+        line-height: 1.5;
+      }
+      .commit-repo {
+        display: inline-block;
+        font-size: 0.5rem;
+        color: var(--muted);
+        border: 1px solid var(--dim);
+        padding: 0.1rem 0.4rem;
+        margin-top: 0.3rem;
+        letter-spacing: 0.06em;
+      }
+      .commit-sha {
+        font-size: 0.52rem;
+        color: var(--muted);
+        text-align: right;
+        font-style: italic;
+        padding-top: 0.1rem;
+      }
+
+      /* ══ PANE: REPOS ══ */
+      .repos-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1px;
+        background: var(--dim);
+        border: 1px solid var(--dim);
+      }
+      .repo-card {
+        background: var(--ink);
+        padding: 1.2rem 1.3rem;
+        text-decoration: none;
+        display: block;
+        transition: background 0.15s;
+        position: relative;
+      }
+      .repo-card:hover {
+        background: var(--surface);
+      }
+      .repo-card::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: transparent;
+        transition: background 0.15s;
+      }
+      .repo-card:hover::before {
+        background: var(--accent);
+      }
+      .repo-name {
+        font-family: "Special Elite", cursive;
+        font-size: 0.9rem;
+        color: var(--paper);
+        margin-bottom: 0.4rem;
+      }
+      .repo-desc {
+        font-size: 0.6rem;
+        color: var(--muted);
+        line-height: 1.65;
+        font-style: italic;
+        margin-bottom: 0.7rem;
+        min-height: 2rem;
+      }
+      .repo-footer {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+      }
+      .repo-lang {
+        font-size: 0.5rem;
+        letter-spacing: 0.1em;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+        padding: 0.1rem 0.45rem;
+      }
+      .repo-stars {
+        font-size: 0.5rem;
+        color: var(--amber);
+      }
+      .repo-forks {
+        font-size: 0.5rem;
+        color: var(--muted);
+      }
+      .repo-updated {
+        font-size: 0.48rem;
+        color: #3a3830;
+        margin-left: auto;
+      }
+      .repo-archived {
+        font-size: 0.45rem;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        border: 1px solid var(--dim);
+        padding: 0.1rem 0.4rem;
+        text-transform: uppercase;
+      }
+
+      /* ══ PANE: LANGUAGES ══ */
+      .lang-header {
+        font-size: 0.5rem;
+        letter-spacing: 0.2em;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--dim);
+      }
+      .lang-row {
+        display: grid;
+        grid-template-columns: 130px 1fr 55px;
+        align-items: center;
+        gap: 1.2rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px dashed var(--dim);
+      }
+      .lang-row:last-child {
+        border-bottom: none;
+      }
+      .lang-name {
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        color: var(--paper);
+        text-transform: uppercase;
+      }
+      .lang-bar-wrap {
+        height: 2px;
+        background: var(--dim);
+        overflow: hidden;
+        position: relative;
+      }
+      .lang-bar {
+        height: 100%;
+        background: var(--accent);
+        width: 0;
+        transition: width 1s ease-out;
+        position: relative;
+      }
+      .lang-bar::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        top: -1px;
+        bottom: -1px;
+        width: 3px;
+        background: #5a8ab0;
+      }
+      .lang-pct {
+        font-size: 0.58rem;
+        color: var(--accent);
+        text-align: right;
+        letter-spacing: 0.05em;
+      }
+      .lang-bytes {
+        font-size: 0.45rem;
+        color: var(--muted);
+        margin-top: 0.15rem;
+      }
+
+      /* ══ PANE: HEATMAP ══ */
+      .hm-stats {
+        display: flex;
+        gap: 3rem;
+        margin-bottom: 2.5rem;
+        flex-wrap: wrap;
+      }
+      .hm-stat {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .hm-stat-val {
+        font-family: "Special Elite", cursive;
+        font-size: 2.2rem;
+        color: var(--paper);
+        line-height: 1;
+      }
+      .hm-stat-val.loading {
+        font-size: 1rem;
+        color: var(--dim);
+        animation: blink 1.4s ease-in-out infinite;
+      }
+      .hm-stat-key {
+        font-size: 0.48rem;
+        letter-spacing: 0.2em;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+
+      .hm-month-row {
+        display: flex;
+        margin-bottom: 5px;
+      }
+      .hm-month {
+        font-size: 0.46rem;
+        color: #3a3830;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        overflow: hidden;
+      }
+      .hm-grid {
+        display: flex;
+        gap: 3px;
+      }
+      .hm-col {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .hm-cell {
+        width: 13px;
+        height: 13px;
+        background: var(--dim);
+        border-radius: 2px;
+        cursor: crosshair;
+        position: relative;
+        flex-shrink: 0;
+        transition: outline 0.1s;
+      }
+      .hm-cell:hover {
+        outline: 1px solid var(--muted);
+      }
+      .hm-cell:hover::after {
+        content: attr(data-tip);
+        position: absolute;
+        bottom: 150%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--paper);
+        color: var(--ink);
+        font-size: 0.48rem;
+        padding: 0.2rem 0.5rem;
+        white-space: nowrap;
+        z-index: 50;
+        pointer-events: none;
+        letter-spacing: 0.05em;
+      }
+      .hm-cell[data-level="1"] {
+        background: rgba(26, 58, 92, 0.28);
+      }
+      .hm-cell[data-level="2"] {
+        background: rgba(26, 58, 92, 0.52);
+      }
+      .hm-cell[data-level="3"] {
+        background: rgba(26, 58, 92, 0.78);
+      }
+      .hm-cell[data-level="4"] {
+        background: var(--accent);
+      }
+
+      /* ══ FOOTER ══ */
+      #footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.6rem 2rem;
+        border-top: 1px solid var(--dim);
+        font-size: 0.44rem;
+        letter-spacing: 0.15em;
+        color: #3a3830;
+        text-transform: uppercase;
+        flex-shrink: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <!-- HEADER -->
+      <header id="header">
+        <div class="header-left">
+          <span class="header-badge">Intel File · A1RER</span>
+          <span class="header-title">GitHub Intelligence</span>
+          <span class="header-sub"
+            >github.com/A1RER · Public API · Unauthenticated</span
+          >
+        </div>
+        <div class="header-right">
+          <span id="rate-limit"></span>
+          <a id="back-btn" href="index.html">← Dossier</a>
+        </div>
+      </header>
+
+      <!-- TAB BAR -->
+      <nav id="tabs">
+        <button class="tab active" data-tab="commits">
+          § Commits<span class="tab-count" id="count-commits"></span>
+        </button>
+        <button class="tab" data-tab="repos">
+          § Repos<span class="tab-count" id="count-repos"></span>
+        </button>
+        <button class="tab" data-tab="langs">
+          § Languages<span class="tab-count" id="count-langs"></span>
+        </button>
+        <button class="tab" data-tab="heatmap">§ Heatmap</button>
+      </nav>
+
+      <!-- PANES -->
+      <div id="panes">
+        <!-- COMMITS -->
+        <div class="pane active" id="pane-commits">
+          <div class="loading-row" id="load-commits">
+            <span class="cursor">▋</span> Fetching commit history...
+          </div>
+          <div id="data-commits" style="display: none"></div>
+        </div>
+
+        <!-- REPOS -->
+        <div class="pane" id="pane-repos">
+          <div class="loading-row" id="load-repos">
+            <span class="cursor">▋</span> Fetching repositories...
+          </div>
+          <div id="data-repos" style="display: none"></div>
+        </div>
+
+        <!-- LANGUAGES -->
+        <div class="pane" id="pane-langs">
+          <div class="loading-row" id="load-langs">
+            <span class="cursor">▋</span> Aggregating language data across
+            repos...
+          </div>
+          <div id="data-langs" style="display: none"></div>
+        </div>
+
+        <!-- HEATMAP -->
+        <div class="pane" id="pane-heatmap">
+          <div class="loading-row" id="load-heatmap">
+            <span class="cursor">▋</span> Building contribution map...
+          </div>
+          <div id="data-heatmap" style="display: none"></div>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <footer id="footer">
+        <span>A1RER · Intel Page · Built with vibe coding</span>
+        <span id="fetch-time"></span>
+      </footer>
+    </div>
+
+    <script>
+      const GH_USER = "A1RER";
+      const GH_API = "https://api.github.com";
+      const cache = {};
+
+      async function ghFetch(path) {
+        const res = await fetch(`${GH_API}${path}`, {
+          headers: { Accept: "application/vnd.github+json" },
+        });
+        const rem = res.headers.get("X-RateLimit-Remaining");
+        if (rem !== null)
+          document.getElementById("rate-limit").textContent =
+            `API · ${rem}/60 remaining`;
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        return res.json();
+      }
+
+      function fmt(iso) {
+        const d = new Date(iso);
+        return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+      }
+      function fmtMon(iso) {
+        const d = new Date(iso);
+        return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}`;
+      }
+      function trunc(s, n = 64) {
+        return s.length > n ? s.slice(0, n) + "…" : s;
+      }
+      function bytes(n) {
+        if (n > 1e6) return (n / 1e6).toFixed(1) + " MB";
+        if (n > 1e3) return (n / 1e3).toFixed(1) + " KB";
+        return n + " B";
+      }
+      function done(loadId, dataId) {
+        document.getElementById(loadId).style.display = "none";
+        document.getElementById(dataId).style.display = "block";
+      }
+      function err(dataId, msg) {
+        document.getElementById(dataId).innerHTML =
+          `<div class="error-block">Error: ${msg}<br>Visit <a href="https://github.com/${GH_USER}" target="_blank">github.com/${GH_USER}</a> directly.</div>`;
+      }
+
+      // ── Commits ──────────────────────────────────────────
+      async function loadCommits() {
+        if (cache.commits) return;
+        try {
+          const events = await ghFetch(
+            `/users/${GH_USER}/events/public?per_page=100`,
+          );
+          const pushes = events.filter((e) => e.type === "PushEvent");
+          const rows = [];
+          const seen = new Set();
+          for (const push of pushes) {
+            for (const c of [...push.payload.commits].reverse()) {
+              const msg = c.message.split("\n")[0].trim();
+              if (!seen.has(msg) && rows.length < 30) {
+                seen.add(msg);
+                rows.push({
+                  msg,
+                  sha: c.sha.slice(0, 7),
+                  repo: push.repo.name.replace(`${GH_USER}/`, ""),
+                  date: push.created_at,
+                });
+              }
+            }
+          }
+          document.getElementById("count-commits").textContent = rows.length;
+          document.getElementById("data-commits").innerHTML = rows.length
+            ? rows
+                .map(
+                  (c) => `
+              <div class="commit-row">
+                <span class="commit-date">${fmtMon(c.date)}</span>
+                <span class="commit-msg">
+                  ${trunc(c.msg)}
+                  <span class="commit-repo">${c.repo}</span>
+                </span>
+                <span class="commit-sha">${c.sha}</span>
+              </div>`,
+                )
+                .join("")
+            : `<div class="error-block">No recent public push events found.</div>`;
+          cache.commits = true;
+        } catch (e) {
+          err("data-commits", e.message);
+        }
+        done("load-commits", "data-commits");
+      }
+
+      // ── Repos ─────────────────────────────────────────────
+      async function loadRepos() {
+        if (cache.repos) return;
+        try {
+          const repos = await ghFetch(
+            `/users/${GH_USER}/repos?sort=updated&per_page=30`,
+          );
+          document.getElementById("count-repos").textContent = repos.length;
+          document.getElementById("data-repos").innerHTML =
+            `<div class="repos-grid">${repos
+              .map(
+                (r) => `
+              <a class="repo-card" href="${r.html_url}" target="_blank">
+                <div class="repo-name">${r.name}</div>
+                <div class="repo-desc">${r.description || "—"}</div>
+                <div class="repo-footer">
+                  ${r.language ? `<span class="repo-lang">${r.language}</span>` : ""}
+                  ${r.stargazers_count ? `<span class="repo-stars">★ ${r.stargazers_count}</span>` : ""}
+                  ${r.forks_count ? `<span class="repo-forks">⑂ ${r.forks_count}</span>` : ""}
+                  ${r.archived ? `<span class="repo-archived">archived</span>` : ""}
+                  <span class="repo-updated">${fmt(r.updated_at)}</span>
+                </div>
+              </a>`,
+              )
+              .join("")}</div>`;
+          cache.repos = true;
+        } catch (e) {
+          err("data-repos", e.message);
+        }
+        done("load-repos", "data-repos");
+      }
+
+      // ── Languages ─────────────────────────────────────────
+      async function loadLangs() {
+        if (cache.langs) return;
+        try {
+          const repos = await ghFetch(`/users/${GH_USER}/repos?per_page=30`);
+          const totals = {};
+          await Promise.allSettled(
+            repos.slice(0, 15).map(async (r) => {
+              try {
+                const langs = await ghFetch(
+                  `/repos/${GH_USER}/${r.name}/languages`,
+                );
+                for (const [l, b] of Object.entries(langs))
+                  totals[l] = (totals[l] || 0) + b;
+              } catch {}
+            }),
+          );
+          const total = Object.values(totals).reduce((a, b) => a + b, 0) || 1;
+          const sorted = Object.entries(totals)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 14);
+          document.getElementById("count-langs").textContent = sorted.length;
+          document.getElementById("data-langs").innerHTML = `
+            <div class="lang-header">Language distribution across ${repos.length} public repos · ${bytes(total)} total</div>
+            ${sorted
+              .map(([lang, b]) => {
+                const pct = ((b / total) * 100).toFixed(1);
+                return `<div class="lang-row">
+                <div>
+                  <div class="lang-name">${lang}</div>
+                  <div class="lang-bytes">${bytes(b)}</div>
+                </div>
+                <div class="lang-bar-wrap"><div class="lang-bar" data-pct="${pct}"></div></div>
+                <span class="lang-pct">${pct}%</span>
+              </div>`;
+              })
+              .join("")}`;
+          // Animate bars
+          requestAnimationFrame(() => {
+            document
+              .querySelectorAll(".lang-bar")
+              .forEach((bar) =>
+                setTimeout(() => (bar.style.width = bar.dataset.pct + "%"), 80),
+              );
+          });
+          cache.langs = true;
+        } catch (e) {
+          err("data-langs", e.message);
+        }
+        done("load-langs", "data-langs");
+      }
+
+      // ── Heatmap ───────────────────────────────────────────
+      async function loadHeatmap() {
+        if (cache.heatmap) return;
+        try {
+          const [e1, e2, e3, user] = await Promise.all([
+            ghFetch(`/users/${GH_USER}/events/public?per_page=100&page=1`),
+            ghFetch(
+              `/users/${GH_USER}/events/public?per_page=100&page=2`,
+            ).catch(() => []),
+            ghFetch(
+              `/users/${GH_USER}/events/public?per_page=100&page=3`,
+            ).catch(() => []),
+            ghFetch(`/users/${GH_USER}`),
+          ]);
+          const all = [...e1, ...e2, ...e3];
+          const dayCounts = {};
+          let totalCommits = 0;
+          all.forEach((ev) => {
+            const day = ev.created_at.slice(0, 10);
+            dayCounts[day] = (dayCounts[day] || 0) + 1;
+            if (ev.type === "PushEvent")
+              totalCommits += (ev.payload.commits || []).length;
+          });
+          const activeDays = Object.keys(dayCounts).length;
+          const maxC = Math.max(...Object.values(dayCounts), 1);
+          const lvl = (n) =>
+            !n
+              ? 0
+              : n <= maxC * 0.25
+                ? 1
+                : n <= maxC * 0.5
+                  ? 2
+                  : n <= maxC * 0.75
+                    ? 3
+                    : 4;
+
+          const DAY = 86400000;
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const start = new Date(
+            today.getTime() - (today.getDay() + 52 * 7 - 1) * DAY,
+          );
+          const weeks = [];
+          let cur = new Date(start);
+          while (cur <= today) {
+            const w = [];
+            for (let d = 0; d < 7; d++) {
+              const ds = cur.toISOString().slice(0, 10);
+              w.push({ date: ds, count: dayCounts[ds] || 0 });
+              cur = new Date(cur.getTime() + DAY);
+            }
+            weeks.push(w);
+          }
+          const MON = [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+          ];
+          let lastM = -1;
+          const mLabels = weeks.map((w) => {
+            const m = new Date(w[0].date).getMonth();
+            if (m !== lastM) {
+              lastM = m;
+              return MON[m];
+            }
+            return "";
+          });
+          const wPct = (100 / weeks.length).toFixed(2);
+
+          document.getElementById("data-heatmap").innerHTML = `
+            <div class="hm-stats">
+              <div class="hm-stat"><span class="hm-stat-val">${totalCommits || activeDays}</span><span class="hm-stat-key">Commits tracked</span></div>
+              <div class="hm-stat"><span class="hm-stat-val">${user.public_repos || 0}</span><span class="hm-stat-key">Public repos</span></div>
+              <div class="hm-stat"><span class="hm-stat-val">${activeDays}</span><span class="hm-stat-key">Active days</span></div>
+              <div class="hm-stat"><span class="hm-stat-val">${user.followers || 0}</span><span class="hm-stat-key">Followers</span></div>
+            </div>
+            <div class="hm-month-row">
+              ${mLabels.map((l) => `<span class="hm-month" style="flex:0 0 ${wPct}%">${l}</span>`).join("")}
+            </div>
+            <div class="hm-grid">
+              ${weeks
+                .map(
+                  (w) =>
+                    `<div class="hm-col">${w
+                      .map(
+                        (day) => `
+                <div class="hm-cell" data-level="${lvl(day.count)}"
+                  data-tip="${day.date} · ${day.count} event${day.count !== 1 ? "s" : ""}"></div>
+              `,
+                      )
+                      .join("")}</div>`,
+                )
+                .join("")}
+            </div>`;
+
+          // Stagger animation
+          document.querySelectorAll(".hm-cell").forEach((c, i) => {
+            c.style.opacity = "0";
+            setTimeout(() => {
+              c.style.transition = "opacity 0.12s";
+              c.style.opacity = "1";
+            }, i * 1.2);
+          });
+          cache.heatmap = true;
+        } catch (e) {
+          err("data-heatmap", e.message);
+        }
+        done("load-heatmap", "data-heatmap");
+      }
+
+      // ── Tab switching ──────────────────────────────────────
+      const loaders = {
+        commits: loadCommits,
+        repos: loadRepos,
+        langs: loadLangs,
+        heatmap: loadHeatmap,
+      };
+
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          document
+            .querySelectorAll(".tab")
+            .forEach((t) => t.classList.remove("active"));
+          document
+            .querySelectorAll(".pane")
+            .forEach((p) => p.classList.remove("active"));
+          tab.classList.add("active");
+          document
+            .getElementById(`pane-${tab.dataset.tab}`)
+            .classList.add("active");
+          loaders[tab.dataset.tab]?.();
+        });
+      });
+
+      // ── Boot ───────────────────────────────────────────────
+      document.getElementById("fetch-time").textContent =
+        `Fetched · ${new Date().toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}`;
+      loadCommits(); // preload first tab
+    </script>
+  </body>
+</html>

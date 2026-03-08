@@ -1,0 +1,1885 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>A1RER</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300&family=Noto+Serif+SC:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --ink: #0e0d0b;
+        --paper: #f5f0e8;
+        --paper2: #ede8de;
+        --fold: #d9d3c7;
+        --accent: #1a3a5c;
+        --red: #8b2a2a;
+        --muted: #8a8278;
+        --faint: #c8c2b8;
+        --amber: #b07d2a;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--ink);
+        color: var(--ink);
+        font-family: "IBM Plex Mono", monospace;
+        overflow-x: hidden;
+        cursor: crosshair;
+      }
+
+      /* ── CUSTOM CURSOR ── */
+      * {
+        cursor: crosshair;
+      }
+      a,
+      button {
+        cursor: crosshair;
+      }
+
+      /* ── NOISE OVERLAY ── */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 1000;
+      }
+
+      /* ══════════════════════════════
+   DOSSIER WRAPPER
+══════════════════════════════ */
+      .dossier {
+        max-width: 960px;
+        margin: 0 auto;
+        background: var(--paper);
+        min-height: 100vh;
+        position: relative;
+        box-shadow:
+          0 0 80px rgba(0, 0, 0, 0.8),
+          0 0 200px rgba(0, 0, 0, 0.4);
+      }
+
+      /* left binding */
+      .dossier::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 32px;
+        background: var(--accent);
+        z-index: 10;
+      }
+
+      /* ruled lines */
+      .dossier::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: repeating-linear-gradient(
+          to bottom,
+          transparent 0px,
+          transparent 27px,
+          rgba(0, 0, 0, 0.06) 27px,
+          rgba(0, 0, 0, 0.06) 28px
+        );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .content {
+        position: relative;
+        z-index: 1;
+        padding: 0 3rem 0 4.5rem;
+      }
+
+      /* ══════════════════════════════
+   HEADER / COVER PAGE
+══════════════════════════════ */
+      .cover {
+        padding: 4rem 0 3rem;
+        border-bottom: 2px solid var(--ink);
+        position: relative;
+      }
+
+      .cover-stamp {
+        position: absolute;
+        top: 2rem;
+        right: 0;
+        width: 120px;
+        height: 120px;
+        border: 3px solid var(--red);
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--red);
+        transform: rotate(-12deg);
+        opacity: 0.7;
+      }
+
+      .stamp-line1 {
+        font-family: "Special Elite", cursive;
+        font-size: 0.55rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+
+      .stamp-line2 {
+        font-family: "Special Elite", cursive;
+        font-size: 1.1rem;
+        letter-spacing: 0.05em;
+        font-weight: bold;
+        line-height: 1;
+      }
+
+      .stamp-line3 {
+        font-family: "Special Elite", cursive;
+        font-size: 0.48rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        opacity: 0.7;
+      }
+
+      .cover-label {
+        font-size: 0.6rem;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.5rem;
+        opacity: 0;
+        animation: appear 0.4s 0.1s forwards;
+      }
+
+      .cover-id {
+        font-family: "Special Elite", cursive;
+        font-size: clamp(3.5rem, 10vw, 7rem);
+        line-height: 0.9;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+        opacity: 0;
+        animation: appear 0.5s 0.2s forwards;
+      }
+
+      .cover-name {
+        font-family: "Noto Serif SC", serif;
+        font-size: 1rem;
+        font-weight: 300;
+        color: var(--muted);
+        margin-top: 0.5rem;
+        margin-bottom: 2rem;
+        font-style: italic;
+        opacity: 0;
+        animation: appear 0.5s 0.35s forwards;
+      }
+
+      .cover-meta {
+        display: flex;
+        gap: 3rem;
+        flex-wrap: wrap;
+        opacity: 0;
+        animation: appear 0.5s 0.5s forwards;
+      }
+
+      .meta-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+      }
+
+      .meta-key {
+        font-size: 0.55rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border-bottom: 1px solid var(--faint);
+        padding-bottom: 0.15rem;
+      }
+
+      .meta-val {
+        font-size: 0.8rem;
+        color: var(--ink);
+        font-family: "IBM Plex Mono", monospace;
+      }
+
+      /* ══════════════════════════════
+   SECTION HEADERS
+══════════════════════════════ */
+      .section {
+        padding: 2.5rem 0;
+        border-bottom: 1px solid var(--fold);
+      }
+      .section:last-child {
+        border-bottom: none;
+      }
+
+      .sec-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.8rem;
+      }
+
+      .sec-num {
+        font-size: 0.55rem;
+        letter-spacing: 0.2em;
+        color: var(--muted);
+        background: var(--fold);
+        padding: 0.25rem 0.6rem;
+        flex-shrink: 0;
+      }
+
+      .sec-title {
+        font-family: "Special Elite", cursive;
+        font-size: 1.1rem;
+        letter-spacing: 0.05em;
+        color: var(--ink);
+        flex: 1;
+      }
+
+      .sec-line {
+        flex: 1;
+        height: 1px;
+        background: var(--fold);
+      }
+
+      /* ══════════════════════════════
+   ABOUT — HANDWRITTEN FEEL
+══════════════════════════════ */
+      .about-text {
+        font-family: "Noto Serif SC", serif;
+        font-size: 0.92rem;
+        font-weight: 300;
+        line-height: 2;
+        color: var(--ink);
+        max-width: 600px;
+        position: relative;
+      }
+
+      .about-text em {
+        font-style: italic;
+        color: var(--accent);
+      }
+
+      .about-text mark {
+        background: rgba(176, 125, 42, 0.2);
+        padding: 0 0.15rem;
+        color: var(--amber);
+        font-style: normal;
+      }
+
+      /* margin annotation */
+      .annotation {
+        position: absolute;
+        right: -5rem;
+        font-size: 0.6rem;
+        color: var(--red);
+        font-family: "IBM Plex Mono", monospace;
+        font-style: italic;
+        transform: rotate(90deg);
+        transform-origin: left center;
+        white-space: nowrap;
+        letter-spacing: 0.1em;
+      }
+
+      /* ══════════════════════════════
+   SKILLS — FLIGHT INSTRUMENT
+══════════════════════════════ */
+      .skills-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: var(--fold);
+        border: 1px solid var(--fold);
+      }
+
+      .skill-cell {
+        background: var(--paper);
+        padding: 1.2rem;
+        position: relative;
+        transition: background 0.15s;
+      }
+      .skill-cell:hover {
+        background: var(--paper2);
+      }
+
+      .skill-name {
+        font-size: 0.65rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.6rem;
+      }
+
+      .skill-bar-wrap {
+        height: 3px;
+        background: var(--fold);
+        margin-bottom: 0.5rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .skill-bar {
+        height: 100%;
+        background: var(--accent);
+        transform-origin: left;
+        transform: scaleX(0);
+        animation: barGrow 0.8s ease-out forwards;
+      }
+
+      .skill-level {
+        font-size: 0.6rem;
+        color: var(--muted);
+        font-style: italic;
+      }
+
+      /* ══════════════════════════════
+   PROJECTS — CASE FILES
+══════════════════════════════ */
+      .case-files {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        background: var(--fold);
+        border: 1px solid var(--fold);
+      }
+
+      .case-file {
+        background: var(--paper);
+        display: grid;
+        grid-template-columns: 80px 1fr auto;
+        align-items: start;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        text-decoration: none;
+        color: inherit;
+        transition: background 0.15s;
+        position: relative;
+      }
+      .case-file:hover {
+        background: var(--paper2);
+      }
+
+      .case-file::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: transparent;
+        transition: background 0.15s;
+      }
+      .case-file:hover::before {
+        background: var(--accent);
+      }
+
+      .case-num {
+        font-size: 0.6rem;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        line-height: 1;
+        padding-top: 0.1rem;
+      }
+
+      .case-num strong {
+        display: block;
+        font-family: "Special Elite", cursive;
+        font-size: 1.4rem;
+        color: var(--ink);
+        font-weight: normal;
+        letter-spacing: 0;
+        line-height: 1;
+      }
+
+      .case-body {
+      }
+
+      .case-name {
+        font-family: "Special Elite", cursive;
+        font-size: 1rem;
+        color: var(--ink);
+        margin-bottom: 0.4rem;
+        letter-spacing: 0.03em;
+      }
+
+      .case-desc {
+        font-size: 0.72rem;
+        color: var(--muted);
+        line-height: 1.7;
+        font-style: italic;
+        margin-bottom: 0.7rem;
+      }
+
+      .case-tags {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+
+      .tag {
+        font-size: 0.55rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        border: 1px solid var(--faint);
+        padding: 0.2rem 0.5rem;
+        color: var(--muted);
+      }
+
+      .tag.active {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .case-status {
+        font-size: 0.55rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        padding-top: 0.15rem;
+      }
+
+      .status-open {
+        color: var(--amber);
+      }
+      .status-closed {
+        color: var(--muted);
+      }
+      .status-active {
+        color: var(--accent);
+      }
+
+      /* ══════════════════════════════
+   INTERESTS — EVIDENCE BOARD
+══════════════════════════════ */
+      .evidence-board {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+      }
+
+      .evidence-card {
+        border: 1px solid var(--fold);
+        padding: 1.2rem;
+        background: var(--paper2);
+        position: relative;
+      }
+
+      /* pin */
+      .evidence-card::before {
+        content: "◆";
+        position: absolute;
+        top: -0.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.6rem;
+        color: var(--red);
+      }
+
+      .ev-category {
+        font-size: 0.55rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.8rem;
+        border-bottom: 1px dashed var(--faint);
+        padding-bottom: 0.5rem;
+      }
+
+      .ev-title {
+        font-family: "Special Elite", cursive;
+        font-size: 0.95rem;
+        color: var(--ink);
+        margin-bottom: 0.4rem;
+        line-height: 1.3;
+      }
+
+      .ev-note {
+        font-size: 0.68rem;
+        color: var(--muted);
+        font-style: italic;
+        line-height: 1.6;
+      }
+
+      /* ══════════════════════════════
+   CURRENTLY — LIVE FEED
+══════════════════════════════ */
+      .feed {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .feed-item {
+        display: grid;
+        grid-template-columns: 100px 1fr;
+        gap: 1rem;
+        padding: 0.9rem 0;
+        border-bottom: 1px dashed var(--faint);
+        align-items: baseline;
+      }
+      .feed-item:last-child {
+        border-bottom: none;
+      }
+
+      .feed-ts {
+        font-size: 0.58rem;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .feed-content {
+        font-family: "Noto Serif SC", serif;
+        font-size: 0.82rem;
+        font-weight: 300;
+        color: var(--ink);
+        line-height: 1.6;
+      }
+
+      .feed-content a {
+        color: var(--accent);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      /* ══════════════════════════════
+   CONTACT / FOOTER
+══════════════════════════════ */
+      .contacts {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 2rem 0;
+      }
+
+      .contact-link {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        color: var(--muted);
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        transition: color 0.15s;
+        border-bottom: 1px solid transparent;
+        padding-bottom: 1px;
+      }
+      .contact-link:hover {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+
+      .contact-icon {
+        opacity: 0.5;
+        font-size: 0.9rem;
+      }
+
+      .footer-rule {
+        border: none;
+        border-top: 2px solid var(--ink);
+        margin: 0;
+      }
+
+      .footer-bar {
+        padding: 1.5rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .footer-sig {
+        font-family: "Special Elite", cursive;
+        font-size: 1.2rem;
+        color: var(--ink);
+        opacity: 0.4;
+      }
+
+      .footer-copy {
+        font-size: 0.55rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      /* ══════════════════════════════
+   TYPEWRITER EFFECT
+══════════════════════════════ */
+      .typewriter {
+        overflow: hidden;
+        border-right: 2px solid var(--accent);
+        white-space: nowrap;
+        animation:
+          typing 2s steps(30, end) 0.8s both,
+          blink 0.75s step-end infinite 2.8s;
+        max-width: fit-content;
+      }
+
+      @keyframes typing {
+        from {
+          max-width: 0;
+        }
+        to {
+          max-width: 100%;
+        }
+      }
+
+      @keyframes blink {
+        50% {
+          border-color: transparent;
+        }
+      }
+
+      /* ══════════════════════════════
+   NAV BINDING LABELS
+══════════════════════════════ */
+      .binding {
+        position: fixed;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 32px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        z-index: 50;
+      }
+
+      .binding-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        cursor: crosshair;
+        transition: background 0.2s;
+      }
+      .binding-dot:hover {
+        background: rgba(255, 255, 255, 0.8);
+      }
+      .binding-dot.active {
+        background: white;
+      }
+
+      /* ══════════════════════════════
+   ANIMATIONS
+══════════════════════════════ */
+      @keyframes appear {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes barGrow {
+        to {
+          transform: scaleX(1);
+        }
+      }
+
+      /* stagger sections */
+      .section {
+        opacity: 0;
+        animation: appear 0.5s ease forwards;
+      }
+      .section:nth-child(1) {
+        animation-delay: 0.6s;
+      }
+      .section:nth-child(2) {
+        animation-delay: 0.75s;
+      }
+      .section:nth-child(3) {
+        animation-delay: 0.9s;
+      }
+      .section:nth-child(4) {
+        animation-delay: 1.05s;
+      }
+      .section:nth-child(5) {
+        animation-delay: 1.2s;
+      }
+
+      /* ══════════════════════════════
+   REDACTED EFFECT
+══════════════════════════════ */
+      .redacted {
+        background: var(--ink);
+        color: transparent;
+        user-select: none;
+        border-radius: 2px;
+        padding: 0 0.2rem;
+        transition: all 0.3s;
+      }
+      .redacted:hover {
+        background: var(--fold);
+        color: var(--ink);
+      }
+
+      /* scrollbar */
+      ::-webkit-scrollbar {
+        width: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--ink);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- BINDING NAV -->
+    <div class="binding">
+      <div class="binding-dot active"></div>
+      <div class="binding-dot"></div>
+      <div class="binding-dot"></div>
+      <div class="binding-dot"></div>
+      <div class="binding-dot"></div>
+    </div>
+
+    <div class="dossier">
+      <div class="content">
+        <!-- ── COVER ── -->
+        <header class="cover">
+          <div class="cover-stamp">
+            <span class="stamp-line1">case</span>
+            <span class="stamp-line2">OPEN</span>
+            <span class="stamp-line3">2026.03.08</span>
+          </div>
+
+          <div class="cover-label">Personal Dossier · Subject File</div>
+          <div class="cover-id">A1RER</div>
+          <div class="cover-name typewriter">
+            通信工程 · 信号与系统 · 永远在建造中
+          </div>
+
+          <div class="cover-meta">
+            <div class="meta-field">
+              <span class="meta-key">Location</span>
+              <span class="meta-val">重庆 · CQUPT</span>
+            </div>
+            <div class="meta-field">
+              <span class="meta-key">Status</span>
+              <span class="meta-val"
+                >Sophomore ·
+                <span style="color: var(--amber)">Active</span></span
+              >
+            </div>
+            <div class="meta-field">
+              <span class="meta-key">Direction</span>
+              <span class="meta-val">BUPT 801 · Full-stack</span>
+            </div>
+            <div class="meta-field">
+              <span class="meta-key">GitHub</span>
+              <span class="meta-val"
+                ><a
+                  href="https://github.com/A1RER"
+                  style="color: var(--accent); text-decoration: none"
+                  >github.com/A1RER</a
+                ></span
+              >
+            </div>
+          </div>
+        </header>
+
+        <!-- ── ABOUT ── -->
+        <section class="section">
+          <div class="sec-header">
+            <span class="sec-num">§ 01</span>
+            <span class="sec-title">Subject Overview</span>
+            <div class="sec-line"></div>
+          </div>
+          <div class="about-text">
+            通信工程在读，<em>信号处理</em>方向。用 MATLAB
+            做雷达成像，用代码做一切感兴趣的事。
+            <br /><br />
+            喜欢<mark>推理</mark>——不只是福尔摩斯，而是那种把散乱的线索收拢成唯一答案的过程。
+            写代码的时候大概也是这种感觉。
+            <br /><br />
+            听单依纯，看江文的电影，研究<em>飞行事故报告</em>。
+            有一天想在大理开一家咖啡馆，但那是很后来的事。
+            <span class="annotation">// still compiling</span>
+          </div>
+        </section>
+
+        <!-- ── SKILLS ── -->
+        <section class="section">
+          <div class="sec-header">
+            <span class="sec-num">§ 02</span>
+            <span class="sec-title">Capabilities Assessment</span>
+            <div class="sec-line"></div>
+          </div>
+          <div class="skills-grid">
+            <div class="skill-cell">
+              <div class="skill-name">MATLAB</div>
+              <div class="skill-bar-wrap">
+                <div
+                  class="skill-bar"
+                  style="width: 82%; animation-delay: 1.1s"
+                ></div>
+              </div>
+              <div class="skill-level">radar imaging · simulation</div>
+            </div>
+            <div class="skill-cell">
+              <div class="skill-name">Python</div>
+              <div class="skill-bar-wrap">
+                <div
+                  class="skill-bar"
+                  style="width: 68%; animation-delay: 1.2s"
+                ></div>
+              </div>
+              <div class="skill-level">data · pytorch · scripting</div>
+            </div>
+            <div class="skill-cell">
+              <div class="skill-name">Java</div>
+              <div class="skill-bar-wrap">
+                <div
+                  class="skill-bar"
+                  style="width: 60%; animation-delay: 1.3s"
+                ></div>
+              </div>
+              <div class="skill-level">backend · jdbc · swing</div>
+            </div>
+            <div class="skill-cell">
+              <div class="skill-name">JavaScript / HTML</div>
+              <div class="skill-bar-wrap">
+                <div
+                  class="skill-bar"
+                  style="width: 72%; animation-delay: 1.4s"
+                ></div>
+              </div>
+              <div class="skill-level">canvas · three.js · vibe coding</div>
+            </div>
+            <div class="skill-cell">
+              <div class="skill-name">Signal Processing</div>
+              <div class="skill-bar-wrap">
+                <div
+                  class="skill-bar"
+                  style="width: 75%; animation-delay: 1.5s"
+                ></div>
+              </div>
+              <div class="skill-level">fourier · convolution · systems</div>
+            </div>
+            <div class="skill-cell">
+              <div class="skill-name">C / C++</div>
+              <div class="skill-bar-wrap">
+                <div
+                  class="skill-bar"
+                  style="width: 45%; animation-delay: 1.6s"
+                ></div>
+              </div>
+              <div class="skill-level">microcontroller · embedded</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── PROJECTS ── -->
+        <section class="section">
+          <div class="sec-header">
+            <span class="sec-num">§ 03</span>
+            <span class="sec-title">Case Files · Projects</span>
+            <div class="sec-line"></div>
+          </div>
+          <!-- 项目进度条（从数据库加载） -->
+          <div class="projects-list" id="projects-list">
+            <div
+              class="project-item"
+              style="
+                color: var(--muted);
+                font-size: 0.62rem;
+                font-style: italic;
+              "
+            >
+              Loading projects...
+            </div>
+          </div>
+          <!-- 原有 case files -->
+          <div class="case-files" style="margin-top: 1px">
+            <a
+              class="case-file"
+              href="https://github.com/A1RER/Radar_Proj"
+              target="_blank"
+            >
+              <div class="case-num">
+                <span>Case</span>
+                <strong>#001</strong>
+              </div>
+              <div class="case-body">
+                <div class="case-name">SkySense 5G · 慧眼识星</div>
+                <div class="case-desc">
+                  ISAR 雷达成像系统。PSO 优化参数，Kalman
+                  滤波跟踪，机器学习目标分类。大创项目，持续推进中。
+                </div>
+                <div class="case-tags">
+                  <span class="tag active">MATLAB</span>
+                  <span class="tag">ISAR Imaging</span>
+                  <span class="tag">PSO</span>
+                  <span class="tag">Kalman Filter</span>
+                  <span class="tag">ML</span>
+                </div>
+              </div>
+              <div class="case-status status-active">● Active</div>
+            </a>
+
+            <a class="case-file" href="#" target="_blank">
+              <div class="case-num">
+                <span>Case</span>
+                <strong>#002</strong>
+              </div>
+              <div class="case-body">
+                <div class="case-name">Hand Gesture Recognition</div>
+                <div class="case-desc">
+                  MediaPipe 手势识别 + 粒子特效系统。摄像头捕捉手部关键点，触发
+                  Canvas 粒子动画响应。
+                </div>
+                <div class="case-tags">
+                  <span class="tag active">JavaScript</span>
+                  <span class="tag">MediaPipe</span>
+                  <span class="tag">Canvas</span>
+                  <span class="tag">Particles</span>
+                </div>
+              </div>
+              <div class="case-status status-closed">✓ Done</div>
+            </a>
+
+            <a class="case-file" href="#" target="_blank">
+              <div class="case-num">
+                <span>Case</span>
+                <strong>#003</strong>
+              </div>
+              <div class="case-body">
+                <div class="case-name">Cyberpunk City Generator</div>
+                <div class="case-desc">
+                  程序化赛博朋克城市生成器。Three.js
+                  构建三维场景，随机建筑、霓虹灯光、动态雨效。
+                </div>
+                <div class="case-tags">
+                  <span class="tag active">Three.js</span>
+                  <span class="tag">Procedural Gen</span>
+                  <span class="tag">WebGL</span>
+                </div>
+              </div>
+              <div class="case-status status-closed">✓ Done</div>
+            </a>
+
+            <a
+              class="case-file"
+              href="https://github.com/A1RER/book_management-system"
+              target="_blank"
+            >
+              <div class="case-num">
+                <span>Case</span>
+                <strong>#004</strong>
+              </div>
+              <div class="case-body">
+                <div class="case-name">Book Management System</div>
+                <div class="case-desc">
+                  Java Swing + MySQL 图书管理系统。管理员/读者双角色，JDBC
+                  数据库操作，DAO 分层架构。
+                </div>
+                <div class="case-tags">
+                  <span class="tag active">Java</span>
+                  <span class="tag">MySQL</span>
+                  <span class="tag">Swing</span>
+                  <span class="tag">JDBC</span>
+                </div>
+              </div>
+              <div class="case-status status-closed">✓ Done</div>
+            </a>
+
+            <a class="case-file" href="#" target="_blank">
+              <div class="case-num">
+                <span>Case</span>
+                <strong>#005</strong>
+              </div>
+              <div class="case-body">
+                <div class="case-name">MCM 2026 · Problem A</div>
+                <div class="case-desc">
+                  美赛 A 题：智能手机电池健康度建模。MATLAB
+                  数学建模，多维度退化曲线拟合与预测。
+                </div>
+                <div class="case-tags">
+                  <span class="tag active">MATLAB</span>
+                  <span class="tag">Math Modeling</span>
+                  <span class="tag">Curve Fitting</span>
+                </div>
+              </div>
+              <div class="case-status status-closed">✓ Done</div>
+            </a>
+          </div>
+        </section>
+
+        <!-- ── INTERESTS / EVIDENCE ── -->
+        <section class="section">
+          <div class="sec-header">
+            <span class="sec-num">§ 04</span>
+            <span class="sec-title">Evidence Board · Interests</span>
+            <div class="sec-line"></div>
+          </div>
+          <div class="evidence-board">
+            <div class="evidence-card">
+              <div class="ev-category">Aviation · 航空</div>
+              <div class="ev-title">飞行事故调查</div>
+              <div class="ev-note">
+                喜欢读 NTSB / CAAC 报告。737
+                MAX、AF447、Germanwings——不是猎奇，是对系统失效逻辑的迷恋。用
+                Infinite Flight 飞航线。
+              </div>
+            </div>
+
+            <div class="evidence-card">
+              <div class="ev-category">Music · 音乐</div>
+              <div class="ev-title">单依纯</div>
+              <div class="ev-note">
+                尤其是与常石磊合作之后的声音质感。那种克制里的张力，跟信号处理里的某些东西很像——带宽有限，信息量无限。
+              </div>
+            </div>
+
+            <div class="evidence-card">
+              <div class="ev-category">Literature · 文学</div>
+              <div class="ev-title">福尔摩斯</div>
+              <div class="ev-note">
+                不只是柯南道尔。是那种演绎思维本身——从细节到结论，从噪声中提取信号。调试代码的时候经常想到他。
+              </div>
+            </div>
+
+            <div class="evidence-card">
+              <div class="ev-category">Cinema · 电影</div>
+              <div class="ev-title">姜文</div>
+              <div class="ev-note">
+                《阳光灿烂的日子》《鬼子来了》。他处理时间的方式很特别——记忆与现实之间总有一层失真，像是相位偏移了。
+              </div>
+            </div>
+
+            <div class="evidence-card">
+              <div class="ev-category">Dream · 远景</div>
+              <div class="ev-title">大理 · 某间咖啡馆</div>
+              <div class="ev-note">
+                很后来的事。苍山洱海，慢慢的下午。现在先把代码写好。
+              </div>
+            </div>
+
+            <div class="evidence-card">
+              <div class="ev-category">Reading · 在读</div>
+              <div class="ev-title">《心经》+ 信号与系统</div>
+              <div class="ev-note">
+                不矛盾。一个讲空，一个讲变换。某种意义上都是在说：<span
+                  class="redacted"
+                  >同一件事</span
+                >。（悬停显示）
+              </div>
+            </div>
+
+            <!-- ── CLASSIFIED CARD ── -->
+            <div class="evidence-card classified-card" id="classified-trigger">
+              <div class="classified-overlay">
+                <div class="classified-stamp">
+                  <span class="cls-line1">level-2</span>
+                  <span class="cls-line2">CLASSIFIED</span>
+                  <span class="cls-line3">clearance required</span>
+                </div>
+                <div class="classified-hint">点击以申请访问权限</div>
+              </div>
+              <div
+                class="ev-category"
+                style="
+                  filter: blur(3px);
+                  user-select: none;
+                  pointer-events: none;
+                "
+              >
+                Redacted · ██████
+              </div>
+              <div
+                class="ev-title"
+                style="
+                  filter: blur(4px);
+                  user-select: none;
+                  pointer-events: none;
+                "
+              >
+                ████████████
+              </div>
+              <div
+                class="ev-note"
+                style="
+                  filter: blur(3px);
+                  user-select: none;
+                  pointer-events: none;
+                "
+              >
+                ██████████████████████████████████████████████████████
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── CURRENTLY ── -->
+        <section class="section">
+          <div class="sec-header">
+            <span class="sec-num">§ 05</span>
+            <span class="sec-title"
+              >Current Status · 动态
+              <span
+                id="feed-live-badge"
+                style="
+                  font-family: &quot;IBM Plex Mono&quot;, monospace;
+                  font-size: 0.5rem;
+                  color: var(--accent);
+                  letter-spacing: 0.15em;
+                  margin-left: 1rem;
+                  opacity: 0;
+                  transition: opacity 0.5s;
+                "
+                >● LIVE</span
+              >
+            </span>
+            <div class="sec-line"></div>
+          </div>
+          <div class="feed" id="activity-feed">
+            <div class="feed-item">
+              <span
+                class="feed-ts"
+                style="color: var(--muted); font-style: italic"
+                >loading</span
+              >
+              <span
+                class="feed-content"
+                style="color: var(--muted); font-style: italic"
+                >正在从数据库加载动态...</span
+              >
+            </div>
+          </div>
+        </section>
+
+        <!-- ── CONTACT ── -->
+        <section class="section" style="border-bottom: none">
+          <div class="sec-header">
+            <span class="sec-num">§ 06</span>
+            <span class="sec-title">Contact · 联络</span>
+            <div class="sec-line"></div>
+          </div>
+          <div class="contacts">
+            <a
+              class="contact-link"
+              href="https://github.com/A1RER"
+              target="_blank"
+            >
+              <span class="contact-icon">⌥</span> github.com/A1RER
+            </a>
+            <a
+              class="contact-link"
+              href="/cdn-cgi/l/email-protection#07663675627547627f666a776b622964686a"
+            >
+              <span class="contact-icon">✉</span> Email
+            </a>
+            <a class="contact-link" href="#">
+              <span class="contact-icon">◈</span> 微信 · WeChat
+            </a>
+          </div>
+        </section>
+      </div>
+      <!-- /content -->
+
+      <hr class="footer-rule" />
+      <div class="content">
+        <div class="footer-bar">
+          <span class="footer-sig">A1RER</span>
+          <span class="footer-copy"
+            >Built with vibe coding · 2026 · All observations subject to
+            revision</span
+          >
+        </div>
+      </div>
+    </div>
+    <!-- /dossier -->
+
+    <!-- ══ CLASSIFIED CARD CSS ══ -->
+    <style>
+      .classified-card {
+        position: relative;
+        cursor: crosshair;
+        overflow: hidden;
+        transition: transform 0.15s;
+      }
+      .classified-card:hover {
+        transform: translateY(-2px);
+      }
+      .classified-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(14, 13, 11, 0.82);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+        z-index: 2;
+        backdrop-filter: blur(1px);
+        transition: background 0.2s;
+      }
+      .classified-card:hover .classified-overlay {
+        background: rgba(14, 13, 11, 0.72);
+      }
+      .classified-stamp {
+        border: 2px solid var(--red);
+        padding: 0.4rem 0.8rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.1rem;
+        transform: rotate(-6deg);
+        opacity: 0.9;
+      }
+      .cls-line1 {
+        font-size: 0.42rem;
+        letter-spacing: 0.25em;
+        color: var(--red);
+        text-transform: uppercase;
+      }
+      .cls-line2 {
+        font-family: "Special Elite", cursive;
+        font-size: 1rem;
+        color: var(--red);
+        letter-spacing: 0.1em;
+        line-height: 1;
+      }
+      .cls-line3 {
+        font-size: 0.38rem;
+        letter-spacing: 0.2em;
+        color: var(--red);
+        text-transform: uppercase;
+        opacity: 0.7;
+      }
+      .classified-hint {
+        font-size: 0.52rem;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+        text-transform: uppercase;
+        animation: hint-pulse 2.5s ease-in-out infinite;
+      }
+      @keyframes hint-pulse {
+        0%,
+        100% {
+          opacity: 0.5;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+      .classified-card.unlocked .classified-overlay {
+        display: none;
+      }
+      .classified-card.unlocked * {
+        filter: none !important;
+        pointer-events: auto !important;
+      }
+      .cls-section {
+        margin-top: 0.7rem;
+        padding-top: 0.7rem;
+        border-top: 1px dashed var(--faint);
+        animation: typeIn 0.4s ease both;
+      }
+      .cls-section:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      .cls-section:nth-child(3) {
+        animation-delay: 0.25s;
+      }
+      .cls-section:nth-child(4) {
+        animation-delay: 0.4s;
+      }
+      @keyframes typeIn {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .cls-section-label {
+        font-size: 0.48rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.3rem;
+      }
+      .cls-section-text {
+        font-size: 0.68rem;
+        color: var(--ink);
+        font-style: italic;
+        line-height: 1.7;
+      }
+
+      /* ── Unlock modal ── */
+      #cls-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(14, 13, 11, 0.75);
+        z-index: 2000;
+        backdrop-filter: blur(3px);
+      }
+      #cls-backdrop.open {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #cls-modal {
+        background: var(--paper);
+        border: 1px solid var(--ink);
+        width: min(420px, 92vw);
+        position: relative;
+        box-shadow: 0 0 60px rgba(0, 0, 0, 0.6);
+        animation: modal-in 0.2s ease-out;
+      }
+      @keyframes modal-in {
+        from {
+          opacity: 0;
+          transform: translateY(12px) scale(0.97);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      #cls-modal::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--red);
+      }
+      .cls-modal-header {
+        padding: 1.3rem 1.5rem 1rem;
+        border-bottom: 1px solid var(--fold);
+      }
+      .cls-modal-badge {
+        font-size: 0.45rem;
+        letter-spacing: 0.3em;
+        color: var(--red);
+        text-transform: uppercase;
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      .cls-modal-title {
+        font-family: "Special Elite", cursive;
+        font-size: 1.1rem;
+        color: var(--ink);
+      }
+      .cls-modal-sub {
+        font-size: 0.55rem;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+        margin-top: 0.2rem;
+        font-style: italic;
+      }
+      .cls-modal-body {
+        padding: 1.3rem 1.5rem;
+      }
+      .cls-input-label {
+        font-size: 0.5rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: block;
+        margin-bottom: 0.5rem;
+      }
+      #cls-input {
+        width: 100%;
+        background: var(--paper2);
+        border: 1px solid var(--fold);
+        border-bottom: 2px solid var(--ink);
+        padding: 0.65rem 0.8rem;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.8rem;
+        color: var(--ink);
+        letter-spacing: 0.1em;
+        outline: none;
+        transition: border-color 0.15s;
+        cursor: crosshair;
+      }
+      #cls-input:focus {
+        border-color: var(--accent);
+      }
+      #cls-input.error {
+        border-color: var(--red);
+        animation: shake 0.3s ease;
+      }
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-6px);
+        }
+        75% {
+          transform: translateX(6px);
+        }
+      }
+      #cls-error {
+        font-size: 0.55rem;
+        color: var(--red);
+        letter-spacing: 0.1em;
+        margin-top: 0.5rem;
+        min-height: 1rem;
+        font-style: italic;
+      }
+      .cls-modal-footer {
+        padding: 0.8rem 1.5rem 1.2rem;
+        display: flex;
+        gap: 0.8rem;
+        justify-content: flex-end;
+      }
+      #cls-cancel {
+        background: none;
+        border: 1px solid var(--faint);
+        color: var(--muted);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.55rem;
+        letter-spacing: 0.15em;
+        padding: 0.45rem 1rem;
+        cursor: crosshair;
+        text-transform: uppercase;
+        transition: all 0.15s;
+      }
+      #cls-cancel:hover {
+        border-color: var(--muted);
+        color: var(--ink);
+      }
+      #cls-submit {
+        background: var(--ink);
+        border: 1px solid var(--ink);
+        color: var(--paper);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.55rem;
+        letter-spacing: 0.2em;
+        padding: 0.45rem 1.2rem;
+        cursor: crosshair;
+        text-transform: uppercase;
+        transition: all 0.15s;
+        position: relative;
+        overflow: hidden;
+      }
+      #cls-submit:hover {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      #cls-submit:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      #cls-submit.loading::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 2px;
+        background: var(--accent);
+        animation: progress 1s ease-in-out infinite;
+      }
+      @keyframes progress {
+        0% {
+          left: 0;
+          width: 0;
+        }
+        50% {
+          left: 0;
+          width: 100%;
+        }
+        100% {
+          left: 100%;
+          width: 0;
+        }
+      }
+
+      /* ── Projects progress ── */
+      .projects-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        background: var(--fold);
+        border: 1px solid var(--fold);
+        margin-top: 0.5rem;
+      }
+      .project-item {
+        background: var(--paper);
+        padding: 1.2rem 1.5rem;
+      }
+      .project-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 0.6rem;
+      }
+      .project-name {
+        font-family: "Special Elite", cursive;
+        font-size: 0.95rem;
+        color: var(--ink);
+      }
+      .project-pct {
+        font-size: 0.58rem;
+        color: var(--accent);
+        letter-spacing: 0.08em;
+      }
+      .project-bar-wrap {
+        height: 2px;
+        background: var(--fold);
+        margin-bottom: 0.5rem;
+      }
+      .project-bar {
+        height: 100%;
+        background: var(--accent);
+        width: 0;
+        transition: width 1s ease-out;
+      }
+      .project-desc {
+        font-size: 0.6rem;
+        color: var(--muted);
+        font-style: italic;
+      }
+      .project-status-active {
+        color: var(--accent);
+      }
+      .project-status-done {
+        color: var(--muted);
+      }
+      .project-status-paused {
+        color: var(--amber);
+      }
+
+      /* ── GitHub trigger ── */
+      #gh-trigger {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 900;
+        text-decoration: none;
+      }
+      .gh-trigger-inner {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #0e0d0b;
+        border: 1px solid #1a3a5c;
+        color: #1a3a5c;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        padding: 0.65rem 1rem;
+        transition: all 0.2s;
+        box-shadow: 0 0 20px rgba(26, 58, 92, 0.3);
+        cursor: crosshair;
+      }
+      .gh-trigger-inner:hover {
+        background: #1a3a5c;
+        color: #f5f0e8;
+        box-shadow: 0 0 30px rgba(26, 58, 92, 0.6);
+      }
+    </style>
+
+    <!-- ══ CLASSIFIED MODAL ══ -->
+    <div id="cls-backdrop">
+      <div id="cls-modal">
+        <div class="cls-modal-header">
+          <span class="cls-modal-badge"
+            >Authorization Required · Level-2 Clearance</span
+          >
+          <div class="cls-modal-title">Classified Archive</div>
+          <div class="cls-modal-sub">输入访问密码以解锁档案内容</div>
+        </div>
+        <div class="cls-modal-body">
+          <label class="cls-input-label" for="cls-input">Access Code</label>
+          <input
+            type="password"
+            id="cls-input"
+            placeholder="••••••••••••"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <div id="cls-error"></div>
+        </div>
+        <div class="cls-modal-footer">
+          <button id="cls-cancel">Cancel</button>
+          <button id="cls-submit">Submit ↵</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ GITHUB TRIGGER ══ -->
+    <a id="gh-trigger" href="github.html" target="_blank">
+      <div class="gh-trigger-inner">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"
+          />
+        </svg>
+        <span>GitHub Intel</span>
+      </div>
+    </a>
+
+    <script>
+      const API = "http://localhost:3001";
+
+      // ── Skill bars observer ───────────────────────────
+      const bars = document.querySelectorAll(".skill-bar");
+      const obs = new IntersectionObserver(
+        (entries) =>
+          entries.forEach((e) => {
+            if (e.isIntersecting) e.target.style.animationPlayState = "running";
+          }),
+        { threshold: 0.3 },
+      );
+      bars.forEach((b) => {
+        b.style.animationPlayState = "paused";
+        obs.observe(b);
+      });
+
+      // ── Binding dots ──────────────────────────────────
+      const dots = document.querySelectorAll(".binding-dot");
+      const sections = document.querySelectorAll(".section");
+      const sObs = new IntersectionObserver(
+        (entries) =>
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              const i = Array.from(sections).indexOf(e.target);
+              dots.forEach((d) => d.classList.remove("active"));
+              if (dots[i]) dots[i].classList.add("active");
+            }
+          }),
+        { threshold: 0.5 },
+      );
+      sections.forEach((s) => sObs.observe(s));
+      dots.forEach((dot, i) =>
+        dot.addEventListener("click", () =>
+          sections[i]?.scrollIntoView({ behavior: "smooth" }),
+        ),
+      );
+
+      // ══════════════════════════════════════════════════
+      //  §05 FEED — 从数据库加载
+      // ══════════════════════════════════════════════════
+      async function loadFeed() {
+        const feedEl = document.getElementById("activity-feed");
+        const badge = document.getElementById("feed-live-badge");
+        try {
+          const res = await fetch(`${API}/api/feed`);
+          const data = await res.json();
+          if (!data.length) {
+            feedEl.innerHTML =
+              '<div class="feed-item"><span class="feed-ts">—</span><span class="feed-content" style="color:var(--muted)">暂无动态</span></div>';
+            return;
+          }
+
+          feedEl.innerHTML = data
+            .map(
+              (item) => `
+            <div class="feed-item">
+              <span class="feed-ts" style="${item.pinned ? "color:var(--accent)" : ""}">${item.date_label}</span>
+              <span class="feed-content">
+                ${item.content}
+                ${item.highlight ? `<span style="color:var(--amber)"> ${item.highlight}</span>` : ""}
+              </span>
+            </div>`,
+            )
+            .join("");
+
+          badge.style.opacity = "1";
+        } catch {
+          feedEl.innerHTML =
+            '<div class="feed-item"><span class="feed-ts" style="color:var(--muted)">offline</span><span class="feed-content" style="color:var(--muted);font-style:italic">后端未连接，显示静态内容</span></div>';
+        }
+      }
+
+      // ══════════════════════════════════════════════════
+      //  §03 PROJECTS — 进度条从数据库加载
+      // ══════════════════════════════════════════════════
+      async function loadProjects() {
+        const container = document.getElementById("projects-list");
+        if (!container) return;
+        try {
+          const res = await fetch(`${API}/api/projects`);
+          const data = await res.json();
+          container.innerHTML = data
+            .map(
+              (p) => `
+            <div class="project-item">
+              <div class="project-header">
+                <span class="project-name">${p.name}</span>
+                <span class="project-pct project-status-${p.status}">${p.progress}%</span>
+              </div>
+              <div class="project-bar-wrap">
+                <div class="project-bar" data-progress="${p.progress}"></div>
+              </div>
+              <div class="project-desc">${p.description || ""}</div>
+            </div>`,
+            )
+            .join("");
+
+          // Animate bars
+          requestAnimationFrame(() => {
+            container
+              .querySelectorAll(".project-bar")
+              .forEach((bar) =>
+                setTimeout(
+                  () => (bar.style.width = bar.dataset.progress + "%"),
+                  100,
+                ),
+              );
+          });
+        } catch {
+          /* 静默失败 */
+        }
+      }
+
+      // ══════════════════════════════════════════════════
+      //  CLASSIFIED — 解锁
+      // ══════════════════════════════════════════════════
+      const TOKEN_KEY = "cls_token";
+      const backdrop = document.getElementById("cls-backdrop");
+      const input = document.getElementById("cls-input");
+      const submitBtn = document.getElementById("cls-submit");
+      const cancelBtn = document.getElementById("cls-cancel");
+      const errorEl = document.getElementById("cls-error");
+      const card = document.getElementById("classified-trigger");
+
+      function openModal() {
+        backdrop.classList.add("open");
+        input.value = "";
+        errorEl.textContent = "";
+        input.classList.remove("error");
+        setTimeout(() => input.focus(), 120);
+      }
+      function closeModal() {
+        backdrop.classList.remove("open");
+        input.value = "";
+        setLoading(false);
+      }
+      function setLoading(on) {
+        submitBtn.disabled = on;
+        submitBtn.classList.toggle("loading", on);
+        submitBtn.textContent = on ? "Verifying..." : "Submit ↵";
+      }
+      function showError(msg) {
+        errorEl.textContent = msg;
+        input.classList.add("error");
+        setTimeout(() => input.classList.remove("error"), 600);
+        input.focus();
+      }
+
+      card?.addEventListener("click", () => {
+        if (card.classList.contains("unlocked")) return;
+        const cached = sessionStorage.getItem(TOKEN_KEY);
+        if (cached) {
+          verifyAndReveal(cached);
+          return;
+        }
+        openModal();
+      });
+      cancelBtn?.addEventListener("click", closeModal);
+      backdrop?.addEventListener("click", (e) => {
+        if (e.target === backdrop) closeModal();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeModal();
+        if (e.key === "Enter" && backdrop.classList.contains("open"))
+          handleSubmit();
+      });
+      submitBtn?.addEventListener("click", handleSubmit);
+
+      async function handleSubmit() {
+        const password = input.value.trim();
+        if (!password) {
+          showError("请输入访问密码");
+          return;
+        }
+        setLoading(true);
+        errorEl.textContent = "";
+        try {
+          const res = await fetch(`${API}/api/unlock`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            showError(data.error || "ACCESS DENIED");
+            setLoading(false);
+            return;
+          }
+          sessionStorage.setItem(TOKEN_KEY, data.token);
+          closeModal();
+          revealContent(data.content);
+        } catch {
+          showError("无法连接到服务器，请确认后端正在运行");
+          setLoading(false);
+        }
+      }
+
+      async function verifyAndReveal(token) {
+        try {
+          const res = await fetch(`${API}/api/verify`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) {
+            card.classList.add("unlocked");
+          } else {
+            sessionStorage.removeItem(TOKEN_KEY);
+            openModal();
+          }
+        } catch {
+          openModal();
+        }
+      }
+
+      function revealContent(content) {
+        card.classList.add("unlocked");
+        card.innerHTML = `
+          <div>
+            <div class="ev-category" style="color:var(--red)">Classified · Level-2 Cleared</div>
+            <div class="ev-title">${content.title}</div>
+            ${content.sections
+              .map(
+                (s) => `
+              <div class="cls-section">
+                <div class="cls-section-label">${s.label}</div>
+                <div class="cls-section-text">${s.text}</div>
+              </div>`,
+              )
+              .join("")}
+          </div>`;
+      }
+
+      // ── Boot ──────────────────────────────────────────
+      loadFeed();
+      loadProjects();
+    </script>
+  </body>
+</html>
