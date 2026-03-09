@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ARCHIVE · A1RER</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Special+Elite&family=Noto+Serif+SC:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+    <style>
+      :root {
+        --paper: #f5f0e8;
+        --ink: #1a1814;
+        --muted: #6b6358;
+        --fold: #ddd8ce;
+        --faint: #c8c2b6;
+        --accent: #2a4a7f;
+        --amber: #c17f32;
+        --red: #8b2222;
+        --dim: #322e28;
+        --bg: #0e0d0b;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--paper);
+        font-family: "IBM Plex Mono", monospace;
+        min-height: 100vh;
+        cursor: crosshair;
+      }
+
+      /* ── BINDING BAR ── */
+      .binding {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 18px;
+        background: var(--ink);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 28px;
+        z-index: 100;
+        border-right: 1px solid #2a2820;
+      }
+      .binding-dot {
+        width: 5px;
+        height: 5px;
+        border: 1px solid var(--muted);
+        border-radius: 50%;
+      }
+      .binding-dot.active {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+
+      /* ── LAYOUT ── */
+      .page {
+        margin-left: 18px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ── TOP NAV ── */
+      .topnav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 2rem;
+        border-bottom: 1px solid #1e1c18;
+        background: #0a0908;
+        flex-shrink: 0;
+      }
+      .nav-brand {
+        display: flex;
+        align-items: baseline;
+        gap: 0.8rem;
+      }
+      .nav-id {
+        font-family: "Special Elite", cursive;
+        font-size: 1rem;
+        color: var(--paper);
+        letter-spacing: 0.08em;
+        text-decoration: none;
+      }
+      .nav-sep {
+        color: var(--muted);
+        font-size: 0.5rem;
+      }
+      .nav-section {
+        font-size: 0.5rem;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      .nav-back {
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        border: 1px solid var(--muted);
+        color: var(--muted);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.5rem;
+        letter-spacing: 0.15em;
+        padding: 0.3rem 0.8rem;
+        transition: all 0.15s;
+        text-transform: uppercase;
+      }
+      .nav-back:hover {
+        border-color: var(--paper);
+        color: var(--paper);
+      }
+
+      /* ── MAIN CONTAINER ── */
+      .container {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 2.5rem 2rem;
+        width: 100%;
+        flex: 1;
+      }
+
+      /* ── LIST VIEW ── */
+      #view-list {
+        display: block;
+      }
+      #view-detail {
+        display: none;
+      }
+
+      .archive-header {
+        margin-bottom: 2.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #1e1c18;
+      }
+      .archive-stamp {
+        font-size: 0.42rem;
+        letter-spacing: 0.4em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.6rem;
+      }
+      .archive-title {
+        font-family: "Special Elite", cursive;
+        font-size: 1.8rem;
+        color: var(--paper);
+        letter-spacing: 0.06em;
+        line-height: 1.1;
+      }
+      .archive-sub {
+        font-size: 0.52rem;
+        color: var(--muted);
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+        font-style: italic;
+      }
+
+      /* ── FILTERS ── */
+      .filters {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+      }
+      .filter-btn {
+        background: none;
+        border: 1px solid #2a2820;
+        color: var(--muted);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.48rem;
+        letter-spacing: 0.15em;
+        padding: 0.3rem 0.8rem;
+        cursor: crosshair;
+        transition: all 0.15s;
+        text-transform: uppercase;
+      }
+      .filter-btn:hover,
+      .filter-btn.active {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      /* ── POST LIST ── */
+      .posts-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        background: #1a1814;
+        border: 1px solid #1a1814;
+      }
+      .post-card {
+        background: #0e0d0b;
+        padding: 1.5rem 1.8rem;
+        cursor: crosshair;
+        transition: background 0.15s;
+        position: relative;
+        border-left: 2px solid transparent;
+      }
+      .post-card:hover {
+        background: #121110;
+        border-left-color: var(--accent);
+      }
+      .post-card.pinned {
+        border-left-color: var(--amber);
+      }
+      .post-card.pinned:hover {
+        border-left-color: var(--amber);
+      }
+      .post-card-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.7rem;
+      }
+      .post-title {
+        font-family: "Special Elite", cursive;
+        font-size: 1rem;
+        color: var(--paper);
+        letter-spacing: 0.04em;
+        line-height: 1.3;
+      }
+      .post-card:hover .post-title {
+        color: var(--accent);
+      }
+      .post-pin {
+        font-size: 0.4rem;
+        letter-spacing: 0.2em;
+        color: var(--amber);
+        text-transform: uppercase;
+        white-space: nowrap;
+        padding-top: 0.2rem;
+      }
+      .post-summary {
+        font-size: 0.58rem;
+        color: var(--muted);
+        line-height: 1.7;
+        margin-bottom: 1rem;
+        font-family: "Noto Serif SC", serif;
+      }
+      .post-meta {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        flex-wrap: wrap;
+      }
+      .post-date {
+        font-size: 0.45rem;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+      }
+      .post-views {
+        font-size: 0.45rem;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+      }
+      .post-tags {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+      .post-tag {
+        font-size: 0.38rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent);
+        border: 1px solid #1a3a5c;
+        padding: 0.15rem 0.5rem;
+      }
+      .post-arrow {
+        position: absolute;
+        right: 1.8rem;
+        bottom: 1.5rem;
+        font-size: 0.5rem;
+        color: var(--muted);
+        opacity: 0;
+        transition:
+          opacity 0.15s,
+          transform 0.15s;
+        letter-spacing: 0.1em;
+      }
+      .post-card:hover .post-arrow {
+        opacity: 1;
+        transform: translateX(3px);
+      }
+
+      .no-posts {
+        padding: 3rem 2rem;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.55rem;
+        letter-spacing: 0.1em;
+        font-style: italic;
+      }
+
+      /* ── DETAIL VIEW ── */
+      .detail-nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #1e1c18;
+      }
+      .detail-back-btn {
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.5rem;
+        letter-spacing: 0.15em;
+        cursor: crosshair;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: color 0.15s;
+        padding: 0;
+      }
+      .detail-back-btn:hover {
+        color: var(--paper);
+      }
+      .detail-meta-top {
+        font-size: 0.45rem;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+      }
+
+      .detail-header {
+        margin-bottom: 2.5rem;
+      }
+      .detail-classification {
+        font-size: 0.38rem;
+        letter-spacing: 0.4em;
+        text-transform: uppercase;
+        color: var(--red);
+        margin-bottom: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      .detail-classification::before,
+      .detail-classification::after {
+        content: "────";
+        color: #2a2820;
+      }
+      .detail-title {
+        font-family: "Special Elite", cursive;
+        font-size: 2rem;
+        color: var(--paper);
+        letter-spacing: 0.04em;
+        line-height: 1.2;
+        margin-bottom: 1rem;
+      }
+      .detail-info {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .detail-info-item {
+        font-size: 0.45rem;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+      }
+      .detail-info-item span {
+        color: var(--faint);
+      }
+      .detail-divider {
+        height: 1px;
+        background: linear-gradient(90deg, var(--accent) 0%, #1a1814 100%);
+        margin: 1.5rem 0;
+        opacity: 0.4;
+      }
+
+      /* ── MARKDOWN CONTENT ── */
+      .post-body {
+        font-family: "Noto Serif SC", serif;
+        font-size: 0.88rem;
+        line-height: 1.9;
+        color: #d5cfc4;
+      }
+      .post-body h1,
+      .post-body h2,
+      .post-body h3 {
+        font-family: "Special Elite", cursive;
+        color: var(--paper);
+        margin: 2rem 0 0.8rem;
+        letter-spacing: 0.04em;
+        line-height: 1.3;
+      }
+      .post-body h1 {
+        font-size: 1.4rem;
+      }
+      .post-body h2 {
+        font-size: 1.1rem;
+        border-left: 2px solid var(--accent);
+        padding-left: 0.8rem;
+      }
+      .post-body h3 {
+        font-size: 0.95rem;
+        color: var(--faint);
+      }
+      .post-body p {
+        margin-bottom: 1.2rem;
+      }
+      .post-body a {
+        color: var(--accent);
+        text-decoration: none;
+        border-bottom: 1px solid #1a3a5c;
+        transition: border-color 0.15s;
+      }
+      .post-body a:hover {
+        border-bottom-color: var(--accent);
+      }
+      .post-body code {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.78rem;
+        background: #141210;
+        border: 1px solid #2a2820;
+        padding: 0.15rem 0.4rem;
+        color: var(--amber);
+      }
+      .post-body pre {
+        background: #080706;
+        border: 1px solid #1a1814;
+        border-left: 2px solid var(--accent);
+        padding: 1.2rem 1.5rem;
+        overflow-x: auto;
+        margin: 1.2rem 0;
+      }
+      .post-body pre code {
+        background: none;
+        border: none;
+        padding: 0;
+        color: #a0d0a0;
+        font-size: 0.75rem;
+        line-height: 1.6;
+      }
+      .post-body blockquote {
+        border-left: 2px solid var(--amber);
+        margin: 1.2rem 0;
+        padding: 0.8rem 1.2rem;
+        background: #0a0908;
+        color: var(--muted);
+        font-style: italic;
+      }
+      .post-body ul,
+      .post-body ol {
+        padding-left: 1.5rem;
+        margin-bottom: 1.2rem;
+      }
+      .post-body li {
+        margin-bottom: 0.4rem;
+      }
+      .post-body hr {
+        border: none;
+        border-top: 1px solid #1e1c18;
+        margin: 2rem 0;
+      }
+      .post-body strong {
+        color: var(--paper);
+        font-weight: 500;
+      }
+      .post-body em {
+        color: var(--faint);
+      }
+      .post-body table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.2rem 0;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.7rem;
+      }
+      .post-body th {
+        background: #141210;
+        border: 1px solid #2a2820;
+        padding: 0.6rem 1rem;
+        text-align: left;
+        color: var(--faint);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-size: 0.6rem;
+      }
+      .post-body td {
+        border: 1px solid #1a1814;
+        padding: 0.5rem 1rem;
+        color: #c0bab0;
+      }
+      .post-body tr:hover td {
+        background: #0a0908;
+      }
+
+      /* ── TAGS at bottom ── */
+      .detail-tags {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 2.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #1e1c18;
+      }
+      .detail-tag {
+        font-size: 0.42rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--accent);
+        border: 1px solid #1a3a5c;
+        padding: 0.25rem 0.7rem;
+        cursor: crosshair;
+        transition: all 0.15s;
+      }
+      .detail-tag:hover {
+        background: #0d1f33;
+      }
+
+      /* ── LOADING ── */
+      .loading {
+        padding: 3rem 0;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.5rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+      .loading::after {
+        content: "";
+        display: inline-block;
+        width: 3rem;
+        height: 1px;
+        background: var(--accent);
+        vertical-align: middle;
+        margin-left: 0.6rem;
+        animation: scanline 1s linear infinite;
+      }
+      @keyframes scanline {
+        0% {
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+
+      /* ── SCROLLBAR ── */
+      ::-webkit-scrollbar {
+        width: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--ink);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="binding">
+      <div class="binding-dot active"></div>
+      <div class="binding-dot"></div>
+      <div class="binding-dot"></div>
+      <div class="binding-dot"></div>
+      <div class="binding-dot"></div>
+    </div>
+
+    <div class="page">
+      <nav class="topnav">
+        <div class="nav-brand">
+          <a class="nav-id" href="A1RER.html">A1RER</a>
+          <span class="nav-sep">/</span>
+          <span class="nav-section">Archive · Field Notes</span>
+        </div>
+        <a href="A1RER.html" class="nav-back">← Return to Dossier</a>
+      </nav>
+
+      <div class="container">
+        <!-- ═══ LIST VIEW ═══ -->
+        <div id="view-list">
+          <div class="archive-header">
+            <div class="archive-stamp">Document Archive · Declassified</div>
+            <div class="archive-title">Field Notes & Reports</div>
+            <div class="archive-sub">
+              按时间归档 · 通信工程 · 信号处理 · 全栈开发
+            </div>
+          </div>
+
+          <div class="filters" id="tag-filters">
+            <button class="filter-btn active" data-tag="">All Records</button>
+          </div>
+
+          <div class="posts-list" id="posts-list">
+            <div class="loading">Retrieving records</div>
+          </div>
+        </div>
+
+        <!-- ═══ DETAIL VIEW ═══ -->
+        <div id="view-detail">
+          <div class="detail-nav">
+            <button class="detail-back-btn" id="back-to-list">
+              ← Back to Archive
+            </button>
+            <div class="detail-meta-top" id="detail-nav-meta">—</div>
+          </div>
+          <div id="detail-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ══════════════════════════════════════════════════
+      //  CONFIG
+      // ══════════════════════════════════════════════════
+      const API = "http://127.0.0.1:3001";
+      let allPosts = [];
+
+      // ══════════════════════════════════════════════════
+      //  MARKED CONFIG
+      // ══════════════════════════════════════════════════
+      marked.setOptions({ breaks: true, gfm: true });
+
+      // ══════════════════════════════════════════════════
+      //  UTILS
+      // ══════════════════════════════════════════════════
+      function fmtDate(iso) {
+        const d = new Date(iso);
+        return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+      }
+
+      function parseTags(tagStr) {
+        if (!tagStr) return [];
+        return tagStr
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean);
+      }
+
+      // ══════════════════════════════════════════════════
+      //  LOAD POSTS
+      // ══════════════════════════════════════════════════
+      async function loadPosts(tag = "") {
+        const list = document.getElementById("posts-list");
+        list.innerHTML = '<div class="loading">Retrieving records</div>';
+        try {
+          const url = tag
+            ? `${API}/api/posts?tag=${encodeURIComponent(tag)}`
+            : `${API}/api/posts`;
+          const res = await fetch(url);
+          allPosts = await res.json();
+          renderList(allPosts);
+          buildTagFilters(allPosts);
+        } catch {
+          list.innerHTML =
+            '<div class="no-posts">后端未连接 — 无法加载档案</div>';
+        }
+      }
+
+      function renderList(posts) {
+        const list = document.getElementById("posts-list");
+        if (!posts.length) {
+          list.innerHTML = '<div class="no-posts">No records found.</div>';
+          return;
+        }
+        list.innerHTML = posts
+          .map((p) => {
+            const tags = parseTags(p.tags);
+            return `
+          <div class="post-card${p.pinned ? " pinned" : ""}" data-slug="${p.slug}">
+            <div class="post-card-top">
+              <div class="post-title">${p.title}</div>
+              ${p.pinned ? '<div class="post-pin">◆ Pinned</div>' : ""}
+            </div>
+            ${p.summary ? `<div class="post-summary">${p.summary}</div>` : ""}
+            <div class="post-meta">
+              <span class="post-date">${fmtDate(p.created_at)}</span>
+              <span class="post-views">▸ ${p.views || 0} reads</span>
+              <div class="post-tags">
+                ${tags.map((t) => `<span class="post-tag">${t}</span>`).join("")}
+              </div>
+            </div>
+            <div class="post-arrow">Open →</div>
+          </div>`;
+          })
+          .join("");
+
+        list.querySelectorAll(".post-card").forEach((card) => {
+          card.addEventListener("click", () => openPost(card.dataset.slug));
+        });
+      }
+
+      function buildTagFilters(posts) {
+        const tagSet = new Set();
+        posts.forEach((p) => parseTags(p.tags).forEach((t) => tagSet.add(t)));
+        const container = document.getElementById("tag-filters");
+        const allBtn = container.querySelector('[data-tag=""]');
+        container.innerHTML = "";
+        container.appendChild(allBtn);
+        tagSet.forEach((tag) => {
+          const btn = document.createElement("button");
+          btn.className = "filter-btn";
+          btn.dataset.tag = tag;
+          btn.textContent = tag;
+          btn.addEventListener("click", () => {
+            document
+              .querySelectorAll(".filter-btn")
+              .forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            loadPosts(tag);
+          });
+          container.appendChild(btn);
+        });
+        allBtn.addEventListener("click", () => {
+          document
+            .querySelectorAll(".filter-btn")
+            .forEach((b) => b.classList.remove("active"));
+          allBtn.classList.add("active");
+          loadPosts("");
+        });
+      }
+
+      // ══════════════════════════════════════════════════
+      //  OPEN POST (detail view)
+      // ══════════════════════════════════════════════════
+      async function openPost(slug) {
+        const listView = document.getElementById("view-list");
+        const detailView = document.getElementById("view-detail");
+        const detailContent = document.getElementById("detail-content");
+        const detailNavMeta = document.getElementById("detail-nav-meta");
+
+        detailContent.innerHTML = '<div class="loading">Decrypting file</div>';
+        listView.style.display = "none";
+        detailView.style.display = "block";
+        window.scrollTo(0, 0);
+
+        try {
+          const res = await fetch(`${API}/api/posts/${slug}`);
+          if (!res.ok) throw new Error("Not found");
+          const post = await res.json();
+          const tags = parseTags(post.tags);
+
+          detailNavMeta.textContent = `${fmtDate(post.created_at)} · ${post.views + 1} reads`;
+
+          detailContent.innerHTML = `
+            <div class="detail-header">
+              <div class="detail-classification">Field Report</div>
+              <div class="detail-title">${post.title}</div>
+              <div class="detail-info">
+                <div class="detail-info-item">Date <span>${fmtDate(post.created_at)}</span></div>
+                <div class="detail-info-item">Updated <span>${fmtDate(post.updated_at)}</span></div>
+                <div class="detail-info-item">Views <span>${post.views + 1}</span></div>
+                ${post.pinned ? '<div class="detail-info-item" style="color:var(--amber)">◆ PINNED</div>' : ""}
+              </div>
+            </div>
+            <div class="detail-divider"></div>
+            <div class="post-body">${marked.parse(post.content)}</div>
+            ${
+              tags.length
+                ? `
+              <div class="detail-tags">
+                ${tags.map((t) => `<span class="detail-tag" onclick="filterByTag('${t}')">${t}</span>`).join("")}
+              </div>`
+                : ""
+            }
+          `;
+        } catch {
+          detailContent.innerHTML =
+            '<div class="no-posts">Record not found or backend offline.</div>';
+        }
+      }
+
+      function filterByTag(tag) {
+        document.getElementById("view-list").style.display = "block";
+        document.getElementById("view-detail").style.display = "none";
+        document.querySelectorAll(".filter-btn").forEach((b) => {
+          b.classList.toggle("active", b.dataset.tag === tag);
+        });
+        loadPosts(tag);
+        window.scrollTo(0, 0);
+      }
+
+      document.getElementById("back-to-list").addEventListener("click", () => {
+        document.getElementById("view-list").style.display = "block";
+        document.getElementById("view-detail").style.display = "none";
+        window.scrollTo(0, 0);
+      });
+
+      // ── URL hash routing ──
+      function routeFromHash() {
+        const hash = window.location.hash.slice(1);
+        if (hash) openPost(hash);
+      }
+
+      // ══════════════════════════════════════════════════
+      //  INIT
+      // ══════════════════════════════════════════════════
+      loadPosts();
+      routeFromHash();
+      window.addEventListener("hashchange", routeFromHash);
+    </script>
+  </body>
+</html>

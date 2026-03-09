@@ -1,0 +1,989 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>INTEL · A1RER Dashboard</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Special+Elite&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+      :root {
+        --paper: #f5f0e8;
+        --ink: #1a1814;
+        --muted: #6b6358;
+        --fold: #ddd8ce;
+        --faint: #c8c2b6;
+        --accent: #2a4a7f;
+        --amber: #c17f32;
+        --red: #8b2222;
+        --green: #2a6b3c;
+        --dim: #322e28;
+        --bg: #0e0d0b;
+        --card: #0a0908;
+        --border: #1a1814;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--paper);
+        font-family: "IBM Plex Mono", monospace;
+        min-height: 100vh;
+        cursor: crosshair;
+      }
+
+      /* ── BINDING ── */
+      .binding {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 18px;
+        background: var(--ink);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 28px;
+        z-index: 100;
+        border-right: 1px solid #2a2820;
+      }
+      .binding-dot {
+        width: 5px;
+        height: 5px;
+        border: 1px solid var(--muted);
+        border-radius: 50%;
+      }
+      .binding-dot.active {
+        background: var(--red);
+        border-color: var(--red);
+      }
+
+      .page {
+        margin-left: 18px;
+        min-height: 100vh;
+      }
+
+      /* ── TOP NAV ── */
+      .topnav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 2rem;
+        border-bottom: 1px solid #1e1c18;
+        background: #080706;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+      .nav-brand {
+        display: flex;
+        align-items: baseline;
+        gap: 0.8rem;
+      }
+      .nav-id {
+        font-family: "Special Elite", cursive;
+        font-size: 1rem;
+        color: var(--paper);
+        letter-spacing: 0.08em;
+        text-decoration: none;
+      }
+      .nav-sep {
+        color: var(--muted);
+        font-size: 0.5rem;
+      }
+      .nav-section {
+        font-size: 0.5rem;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--red);
+      }
+      .nav-back {
+        text-decoration: none;
+        border: 1px solid var(--muted);
+        color: var(--muted);
+        font-size: 0.5rem;
+        letter-spacing: 0.15em;
+        padding: 0.3rem 0.8rem;
+        transition: all 0.15s;
+        text-transform: uppercase;
+      }
+      .nav-back:hover {
+        border-color: var(--paper);
+        color: var(--paper);
+      }
+
+      /* ── AUTH GATE ── */
+      #auth-gate {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 53px);
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+      .auth-label {
+        font-size: 0.42rem;
+        letter-spacing: 0.4em;
+        text-transform: uppercase;
+        color: var(--red);
+      }
+      .auth-title {
+        font-family: "Special Elite", cursive;
+        font-size: 1.4rem;
+        color: var(--paper);
+        letter-spacing: 0.06em;
+        text-align: center;
+      }
+      .auth-sub {
+        font-size: 0.5rem;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+      }
+      .auth-form {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .auth-input {
+        background: #0a0908;
+        border: 1px solid #2a2820;
+        color: var(--paper);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.65rem;
+        padding: 0.6rem 1rem;
+        letter-spacing: 0.05em;
+        outline: none;
+        width: 220px;
+        transition: border-color 0.15s;
+      }
+      .auth-input:focus {
+        border-color: var(--accent);
+      }
+      .auth-input.error {
+        border-color: var(--red);
+        animation: shake 0.3s;
+      }
+      .auth-btn {
+        background: var(--accent);
+        border: 1px solid var(--accent);
+        color: var(--paper);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.55rem;
+        letter-spacing: 0.2em;
+        padding: 0.6rem 1.2rem;
+        cursor: crosshair;
+        text-transform: uppercase;
+        transition: all 0.15s;
+      }
+      .auth-btn:hover {
+        background: #3a5a9f;
+      }
+      .auth-error {
+        font-size: 0.5rem;
+        color: var(--red);
+        letter-spacing: 0.1em;
+        min-height: 1rem;
+      }
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-5px);
+        }
+        75% {
+          transform: translateX(5px);
+        }
+      }
+
+      /* ── DASHBOARD ── */
+      #dashboard {
+        display: none;
+        padding: 2rem;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      .dash-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .dash-title-area {
+      }
+      .dash-stamp {
+        font-size: 0.4rem;
+        letter-spacing: 0.4em;
+        text-transform: uppercase;
+        color: var(--red);
+        margin-bottom: 0.4rem;
+      }
+      .dash-title {
+        font-family: "Special Elite", cursive;
+        font-size: 1.6rem;
+        color: var(--paper);
+      }
+      .dash-updated {
+        font-size: 0.42rem;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+        margin-top: 0.3rem;
+      }
+      .refresh-btn {
+        background: none;
+        border: 1px solid #2a2820;
+        color: var(--muted);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.48rem;
+        letter-spacing: 0.15em;
+        padding: 0.4rem 0.9rem;
+        cursor: crosshair;
+        text-transform: uppercase;
+        transition: all 0.15s;
+      }
+      .refresh-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      /* ── STAT CARDS ── */
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        margin-bottom: 2rem;
+      }
+      .stat-card {
+        background: var(--card);
+        padding: 1.3rem 1.5rem;
+        position: relative;
+        overflow: hidden;
+      }
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: var(--accent);
+        opacity: 0.3;
+      }
+      .stat-card.highlight::before {
+        background: var(--amber);
+        opacity: 0.7;
+      }
+      .stat-label {
+        font-size: 0.38rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.7rem;
+      }
+      .stat-value {
+        font-size: 2rem;
+        font-weight: 300;
+        color: var(--paper);
+        line-height: 1;
+        letter-spacing: -0.02em;
+        transition: color 0.3s;
+      }
+      .stat-card.highlight .stat-value {
+        color: var(--amber);
+      }
+      .stat-unit {
+        font-size: 0.45rem;
+        color: var(--muted);
+        margin-top: 0.3rem;
+      }
+      .stat-loading .stat-value {
+        color: #2a2820;
+      }
+
+      /* ── CHART SECTION ── */
+      .charts-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        margin-bottom: 2rem;
+      }
+      .chart-panel {
+        background: var(--card);
+        padding: 1.5rem;
+      }
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.2rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid #141210;
+      }
+      .panel-title {
+        font-size: 0.48rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--faint);
+      }
+      .panel-badge {
+        font-size: 0.38rem;
+        letter-spacing: 0.15em;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+      .chart-wrap {
+        position: relative;
+        height: 200px;
+      }
+
+      /* ── PAGES TABLE ── */
+      .table-section {
+        border: 1px solid var(--border);
+        background: var(--card);
+        margin-bottom: 2rem;
+      }
+      .table-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .table-title {
+        font-size: 0.48rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--faint);
+      }
+      .table-sub {
+        font-size: 0.38rem;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      thead th {
+        padding: 0.6rem 1.2rem;
+        text-align: left;
+        font-size: 0.38rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--muted);
+        background: #080706;
+        border-bottom: 1px solid var(--border);
+        font-weight: 400;
+      }
+      tbody tr {
+        border-bottom: 1px solid #0e0d0b;
+        transition: background 0.1s;
+      }
+      tbody tr:hover {
+        background: #0a0908;
+      }
+      tbody td {
+        padding: 0.65rem 1.2rem;
+        font-size: 0.52rem;
+        color: #b0a898;
+        letter-spacing: 0.02em;
+      }
+      .td-path {
+        color: var(--faint);
+        font-size: 0.5rem;
+      }
+      .td-pv {
+        color: var(--accent);
+        font-weight: 500;
+      }
+      .td-uv {
+        color: var(--muted);
+      }
+      .bar-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      .mini-bar-wrap {
+        flex: 1;
+        height: 2px;
+        background: #1a1814;
+      }
+      .mini-bar {
+        height: 100%;
+        background: var(--accent);
+        transition: width 0.8s ease-out;
+      }
+
+      .table-loading {
+        padding: 2rem;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.5rem;
+        letter-spacing: 0.1em;
+        font-style: italic;
+      }
+
+      /* ── POSTS STATS ── */
+      .posts-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        margin-bottom: 2rem;
+      }
+      .post-stat-card {
+        background: var(--card);
+        padding: 1rem 1.3rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .psc-title {
+        font-size: 0.7rem;
+        color: var(--faint);
+        line-height: 1.3;
+      }
+      .psc-meta {
+        display: flex;
+        gap: 1rem;
+      }
+      .psc-views {
+        font-size: 0.42rem;
+        color: var(--accent);
+        letter-spacing: 0.08em;
+      }
+      .psc-date {
+        font-size: 0.42rem;
+        color: var(--muted);
+      }
+      .psc-bar-wrap {
+        height: 1px;
+        background: #1a1814;
+        margin-top: 0.3rem;
+      }
+      .psc-bar {
+        height: 100%;
+        background: var(--accent);
+        transition: width 1s ease-out;
+      }
+
+      ::-webkit-scrollbar {
+        width: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--ink);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="binding">
+      <div class="binding-dot active"></div>
+      <div class="binding-dot"></div>
+      <div class="binding-dot"></div>
+      <div class="binding-dot"></div>
+      <div class="binding-dot"></div>
+    </div>
+
+    <div class="page">
+      <nav class="topnav">
+        <div class="nav-brand">
+          <a class="nav-id" href="A1RER.html">A1RER</a>
+          <span class="nav-sep">/</span>
+          <span class="nav-section">Intel · Restricted</span>
+        </div>
+        <a href="A1RER.html" class="nav-back">← Return to Dossier</a>
+      </nav>
+
+      <!-- ══ AUTH GATE ══ -->
+      <div id="auth-gate">
+        <div class="auth-label">Authorization Required · Level-2 Clearance</div>
+        <div class="auth-title">Intelligence Dashboard</div>
+        <div class="auth-sub">访问统计 · 仅限管理员</div>
+        <div class="auth-form">
+          <input
+            type="password"
+            id="auth-input"
+            class="auth-input"
+            placeholder="Access Code"
+            autocomplete="off"
+          />
+          <button class="auth-btn" id="auth-btn">Verify ↵</button>
+        </div>
+        <div class="auth-error" id="auth-error"></div>
+      </div>
+
+      <!-- ══ DASHBOARD ══ -->
+      <div id="dashboard">
+        <div class="dash-header">
+          <div class="dash-title-area">
+            <div class="dash-stamp">Intelligence Report · Eyes Only</div>
+            <div class="dash-title">Site Analytics</div>
+            <div class="dash-updated" id="last-updated">Loading...</div>
+          </div>
+          <button class="refresh-btn" id="refresh-btn">↺ Refresh</button>
+        </div>
+
+        <!-- STAT CARDS -->
+        <div class="stat-grid" id="stat-grid">
+          <div class="stat-card stat-loading">
+            <div class="stat-label">Total PV</div>
+            <div class="stat-value" id="s-total">—</div>
+            <div class="stat-unit">all-time page views</div>
+          </div>
+          <div class="stat-card highlight stat-loading">
+            <div class="stat-label">Today</div>
+            <div class="stat-value" id="s-today">—</div>
+            <div class="stat-unit">page views today</div>
+          </div>
+          <div class="stat-card stat-loading">
+            <div class="stat-label">This Week</div>
+            <div class="stat-value" id="s-week">—</div>
+            <div class="stat-unit">last 7 days</div>
+          </div>
+          <div class="stat-card stat-loading">
+            <div class="stat-label">Visitors (30d)</div>
+            <div class="stat-value" id="s-uv">—</div>
+            <div class="stat-unit">unique IPs</div>
+          </div>
+          <div class="stat-card stat-loading">
+            <div class="stat-label">Posts</div>
+            <div class="stat-value" id="s-posts">—</div>
+            <div class="stat-unit">published articles</div>
+          </div>
+          <div class="stat-card stat-loading">
+            <div class="stat-label">Messages</div>
+            <div class="stat-value" id="s-msgs">—</div>
+            <div class="stat-unit">guestbook entries</div>
+          </div>
+        </div>
+
+        <!-- CHARTS ROW -->
+        <div class="charts-row">
+          <div class="chart-panel">
+            <div class="panel-header">
+              <div class="panel-title">Traffic Trend</div>
+              <div class="panel-badge">Last 30 Days</div>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="trend-chart"></canvas>
+            </div>
+          </div>
+          <div class="chart-panel">
+            <div class="panel-header">
+              <div class="panel-title">PV / UV Ratio</div>
+              <div class="panel-badge">30 Day Total</div>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="ratio-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- HOT PAGES TABLE -->
+        <div class="table-section">
+          <div class="table-header">
+            <div class="panel-title">Hot Pages</div>
+            <div class="table-sub">Top 20 by page views</div>
+          </div>
+          <div id="pages-table-wrap">
+            <div class="table-loading">Loading intel...</div>
+          </div>
+        </div>
+
+        <!-- POST STATS -->
+        <div class="table-section">
+          <div class="table-header">
+            <div class="panel-title">Post Performance</div>
+            <div class="table-sub">All published articles</div>
+          </div>
+          <div class="posts-section" id="posts-stats">
+            <div class="table-loading">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API = "http://127.0.0.1:3001";
+      let JWT = null;
+
+      // ══════════════════════════════════════════════════
+      //  AUTH
+      // ══════════════════════════════════════════════════
+      const authInput = document.getElementById("auth-input");
+      const authBtn = document.getElementById("auth-btn");
+      const authError = document.getElementById("auth-error");
+
+      async function doAuth() {
+        const password = authInput.value.trim();
+        if (!password) return;
+        authBtn.disabled = true;
+        authBtn.textContent = "Verifying...";
+        authError.textContent = "";
+        try {
+          const res = await fetch(`${API}/api/unlock`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Denied");
+          JWT = data.token;
+          document.getElementById("auth-gate").style.display = "none";
+          document.getElementById("dashboard").style.display = "block";
+          loadAll();
+        } catch (e) {
+          authError.textContent = e.message;
+          authInput.classList.add("error");
+          setTimeout(() => authInput.classList.remove("error"), 400);
+        } finally {
+          authBtn.disabled = false;
+          authBtn.textContent = "Verify ↵";
+        }
+      }
+
+      authBtn.addEventListener("click", doAuth);
+      authInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") doAuth();
+      });
+      document.getElementById("refresh-btn").addEventListener("click", loadAll);
+
+      // ══════════════════════════════════════════════════
+      //  LOAD ALL DATA
+      // ══════════════════════════════════════════════════
+      async function loadAll() {
+        document.getElementById("last-updated").textContent =
+          "Updating — " + new Date().toLocaleTimeString("zh");
+        await Promise.all([
+          loadSummary(),
+          loadTrend(),
+          loadPages(),
+          loadPostStats(),
+        ]);
+        document.getElementById("last-updated").textContent =
+          "Last updated: " + new Date().toLocaleTimeString("zh");
+      }
+
+      function authHeaders() {
+        return {
+          Authorization: `Bearer ${JWT}`,
+          "Content-Type": "application/json",
+        };
+      }
+
+      // ── Summary ──
+      async function loadSummary() {
+        try {
+          const res = await fetch(`${API}/api/analytics/summary`, {
+            headers: authHeaders(),
+          });
+          const d = await res.json();
+          animateNum("s-total", d.total_pv);
+          animateNum("s-today", d.today_pv);
+          animateNum("s-week", d.week_pv);
+          animateNum("s-uv", d.unique_visitors_30d);
+          animateNum("s-posts", d.post_count);
+          animateNum("s-msgs", d.msg_count);
+          document
+            .querySelectorAll(".stat-card")
+            .forEach((c) => c.classList.remove("stat-loading"));
+        } catch {}
+      }
+
+      function animateNum(id, target) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        let start = 0;
+        const duration = 800;
+        const step = (ts) => {
+          if (!start) start = ts;
+          const progress = Math.min((ts - start) / duration, 1);
+          el.textContent = Math.floor(progress * target).toLocaleString();
+          if (progress < 1) requestAnimationFrame(step);
+          else el.textContent = target.toLocaleString();
+        };
+        requestAnimationFrame(step);
+      }
+
+      // ── Trend Chart ──
+      let trendChart = null;
+      async function loadTrend() {
+        try {
+          const res = await fetch(`${API}/api/analytics/trend`, {
+            headers: authHeaders(),
+          });
+          const rows = await res.json();
+
+          // Fill missing days
+          const dateMap = {};
+          rows.forEach((r) => {
+            dateMap[r.date] = r;
+          });
+          const labels = [],
+            pvData = [],
+            uvData = [];
+          for (let i = 29; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const key = d.toISOString().slice(0, 10);
+            labels.push(key.slice(5));
+            pvData.push(dateMap[key]?.pv || 0);
+            uvData.push(dateMap[key]?.uv || 0);
+          }
+
+          const ctx = document.getElementById("trend-chart").getContext("2d");
+          if (trendChart) trendChart.destroy();
+          trendChart = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: "PV",
+                  data: pvData,
+                  borderColor: "#2a4a7f",
+                  backgroundColor: "rgba(42,74,127,0.08)",
+                  borderWidth: 1.5,
+                  pointRadius: 0,
+                  pointHoverRadius: 3,
+                  tension: 0.3,
+                  fill: true,
+                },
+                {
+                  label: "UV",
+                  data: uvData,
+                  borderColor: "#c17f32",
+                  backgroundColor: "transparent",
+                  borderWidth: 1,
+                  pointRadius: 0,
+                  pointHoverRadius: 3,
+                  tension: 0.3,
+                  borderDash: [3, 3],
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: { mode: "index", intersect: false },
+              plugins: {
+                legend: {
+                  labels: {
+                    color: "#6b6358",
+                    font: { family: "IBM Plex Mono", size: 10 },
+                    boxWidth: 12,
+                    padding: 12,
+                  },
+                },
+                tooltip: {
+                  backgroundColor: "#080706",
+                  borderColor: "#1a1814",
+                  borderWidth: 1,
+                  titleColor: "#c8c2b6",
+                  bodyColor: "#6b6358",
+                  titleFont: { family: "IBM Plex Mono", size: 10 },
+                  bodyFont: { family: "IBM Plex Mono", size: 10 },
+                  padding: 10,
+                },
+              },
+              scales: {
+                x: {
+                  ticks: {
+                    color: "#6b6358",
+                    font: { family: "IBM Plex Mono", size: 9 },
+                    maxTicksLimit: 10,
+                  },
+                  grid: { color: "#0e0d0b", lineWidth: 0.5 },
+                  border: { color: "#1a1814" },
+                },
+                y: {
+                  ticks: {
+                    color: "#6b6358",
+                    font: { family: "IBM Plex Mono", size: 9 },
+                    maxTicksLimit: 5,
+                  },
+                  grid: { color: "#141210", lineWidth: 0.5 },
+                  border: { color: "#1a1814" },
+                  beginAtZero: true,
+                },
+              },
+            },
+          });
+
+          // Update ratio chart (PV vs UV total)
+          const totalPV = pvData.reduce((a, b) => a + b, 0);
+          const totalUV = uvData.reduce((a, b) => a + b, 0);
+          updateRatioChart(totalPV, totalUV);
+        } catch {}
+      }
+
+      // ── Ratio Chart (donut) ──
+      let ratioChart = null;
+      function updateRatioChart(pv, uv) {
+        const ctx = document.getElementById("ratio-chart").getContext("2d");
+        if (ratioChart) ratioChart.destroy();
+        ratioChart = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: ["Page Views", "Unique Visitors"],
+            datasets: [
+              {
+                data: [pv, uv],
+                backgroundColor: [
+                  "rgba(42,74,127,0.8)",
+                  "rgba(193,127,50,0.6)",
+                ],
+                borderColor: ["#2a4a7f", "#c17f32"],
+                borderWidth: 1,
+                hoverOffset: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "65%",
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: {
+                  color: "#6b6358",
+                  font: { family: "IBM Plex Mono", size: 10 },
+                  boxWidth: 10,
+                  padding: 16,
+                },
+              },
+              tooltip: {
+                backgroundColor: "#080706",
+                borderColor: "#1a1814",
+                borderWidth: 1,
+                titleColor: "#c8c2b6",
+                bodyColor: "#6b6358",
+                titleFont: { family: "IBM Plex Mono", size: 10 },
+                bodyFont: { family: "IBM Plex Mono", size: 10 },
+              },
+            },
+          },
+        });
+      }
+
+      // ── Hot Pages Table ──
+      async function loadPages() {
+        const wrap = document.getElementById("pages-table-wrap");
+        try {
+          const res = await fetch(`${API}/api/analytics/pages`, {
+            headers: authHeaders(),
+          });
+          const rows = await res.json();
+          if (!rows.length) {
+            wrap.innerHTML = '<div class="table-loading">No data yet.</div>';
+            return;
+          }
+          const maxPV = rows[0].pv;
+          wrap.innerHTML = `
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Path</th>
+                  <th>PV</th>
+                  <th>UV</th>
+                  <th style="min-width:120px">Traffic</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows
+                  .map(
+                    (r, i) => `
+                <tr>
+                  <td style="color:var(--muted);font-size:0.42rem">${String(i + 1).padStart(2, "0")}</td>
+                  <td class="td-path">${r.path}</td>
+                  <td class="td-pv">${r.pv.toLocaleString()}</td>
+                  <td class="td-uv">${r.uv.toLocaleString()}</td>
+                  <td>
+                    <div class="bar-cell">
+                      <div class="mini-bar-wrap">
+                        <div class="mini-bar" data-w="${Math.round((r.pv / maxPV) * 100)}"></div>
+                      </div>
+                      <span style="font-size:0.38rem;color:var(--muted);white-space:nowrap">${Math.round((r.pv / maxPV) * 100)}%</span>
+                    </div>
+                  </td>
+                </tr>`,
+                  )
+                  .join("")}
+              </tbody>
+            </table>`;
+          requestAnimationFrame(() => {
+            wrap.querySelectorAll(".mini-bar").forEach((b) => {
+              setTimeout(() => (b.style.width = b.dataset.w + "%"), 100);
+            });
+          });
+        } catch {
+          wrap.innerHTML = '<div class="table-loading">Failed to load.</div>';
+        }
+      }
+
+      // ── Post Stats ──
+      async function loadPostStats() {
+        const wrap = document.getElementById("posts-stats");
+        try {
+          const res = await fetch(`${API}/api/posts/all`, {
+            headers: authHeaders(),
+          });
+          const posts = await res.json();
+          if (!posts.length) {
+            wrap.innerHTML = '<div class="table-loading">No posts yet.</div>';
+            return;
+          }
+          const maxViews = Math.max(...posts.map((p) => p.views), 1);
+          wrap.innerHTML = posts
+            .map(
+              (p) => `
+            <div class="post-stat-card">
+              <div class="psc-title">${p.title}</div>
+              <div class="psc-meta">
+                <span class="psc-views">▸ ${p.views} views</span>
+                <span class="psc-date">${p.created_at?.slice(0, 10) || "—"}</span>
+                <span style="font-size:0.38rem;color:${p.status === "published" ? "var(--green)" : "var(--amber)"}">
+                  ${p.status}
+                </span>
+              </div>
+              <div class="psc-bar-wrap">
+                <div class="psc-bar" data-w="${Math.round((p.views / maxViews) * 100)}"></div>
+              </div>
+            </div>`,
+            )
+            .join("");
+          requestAnimationFrame(() => {
+            wrap.querySelectorAll(".psc-bar").forEach((b) => {
+              setTimeout(() => (b.style.width = b.dataset.w + "%"), 100);
+            });
+          });
+        } catch {
+          wrap.innerHTML = '<div class="table-loading">Failed to load.</div>';
+        }
+      }
+    </script>
+  </body>
+</html>
